@@ -1,16 +1,20 @@
 // Jim Whitehead
-// Created: 4/14/2024
-// Phaser: 3.70.0
+// Created: 5/26/2024
+// Phaser: 3.80.0
 //
-// Cubey
+// Pathfinder demo
 //
-// An example of putting sprites on the screen using Phaser
+// An example of pathfinding in Phaser using the EasyStar.js pathfinder 
+// https://github.com/prettymuchbryce/easystarjs
 // 
-// Art assets from Kenny Assets "Shape Characters" set:
-// https://kenney.nl/assets/shape-characters
+// Assets from the following Kenney Asset packs
+// Tiny Dungeon
+// https://kenney.nl/assets/tiny-dungeon
+//
+// Tiny Town
+// https://kenney.nl/assets/tiny-town
+//
 
-// debug with extreme prejudice
-"use strict"
 
 // game config
 let config = {
@@ -19,23 +23,13 @@ let config = {
     render: {
         pixelArt: true  // prevent pixel art from getting blurred when scaled
     },
-    physics: {
-        default: 'arcade',
-        arcade: {
-            debug: true,
-            gravity: {
-                x: 0,
-                y: 0
-            }
-        }
-    },
-    width: 1440,
-    height: 900,
-    scene: [Load, Platformer, End]
+    width: 1280,
+    height: 800,
+    scene: [Load, Pathfinder]
 }
 
 var cursors;
 const SCALE = 2.0;
-var my = {sprite: {}, text: {}, vfx: {}};
+var my = {sprite: {}};
 
 const game = new Phaser.Game(config);

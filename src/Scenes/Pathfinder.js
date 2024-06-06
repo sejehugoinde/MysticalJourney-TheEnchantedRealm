@@ -1,7 +1,6 @@
-class Platformer extends Phaser.Scene {
+class Pathfinder extends Phaser.Scene {
     constructor() {
-        super("platformerScene");
-        this.my = { text: {}, sprite: {}, vfx: {} };
+        super("pathfinderScene");
     }
 
     preload() {
@@ -16,7 +15,7 @@ class Platformer extends Phaser.Scene {
 
     create() {
         // Create a new tilemap which uses 16x16 tiles, and is 40 tiles wide and 25 tiles tall
-        this.map = this.add.tilemap("platformer-level-1", this.TILESIZE, this.TILESIZE, this.TILEHEIGHT, this.TILEWIDTH);
+        this.map = this.add.tilemap("three-farmhouses", this.TILESIZE, this.TILESIZE, this.TILEHEIGHT, this.TILEWIDTH);
 
         // Add a tileset to the map
         this.tileset = this.map.addTilesetImage("kenney-tiny-town", "tilemap_tiles");
