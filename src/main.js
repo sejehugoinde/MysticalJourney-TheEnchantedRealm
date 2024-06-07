@@ -23,6 +23,16 @@ let config = {
     render: {
         pixelArt: true  // prevent pixel art from getting blurred when scaled
     },
+    physics: {
+        default: 'arcade',
+        arcade: {
+            debug: false,
+            gravity: {
+                x: 0,
+                y: 0
+            }
+        }
+    },
     width: 1280,
     height: 800,
     scene: [Load, Pathfinder]
@@ -33,3 +43,4 @@ const SCALE = 2.0;
 var my = {sprite: {}};
 
 const game = new Phaser.Game(config);
+

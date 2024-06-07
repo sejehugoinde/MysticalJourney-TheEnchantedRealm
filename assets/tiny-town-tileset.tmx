@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="40" height="25" tilewidth="16" tileheight="16" infinite="0" nextlayerid="4" nextobjectid="1">
+<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="40" height="25" tilewidth="16" tileheight="16" infinite="0" nextlayerid="6" nextobjectid="5">
  <editorsettings>
-  <export target="platformer-level-1.tmj" format="json"/>
+  <export target="three-farmhouses.tmj" format="json"/>
  </editorsettings>
  <tileset firstgid="1" name="kenney-tiny-town" tilewidth="16" tileheight="16" tilecount="132" columns="12">
   <image source="../../Tilemap/tilemap_packed.png" width="192" height="176"/>
@@ -120,6 +120,10 @@
 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,13,1,1,1,25,1,1,1,1,25,1,1,1,1,1,1,1,1,1,1
 </data>
  </layer>
+ <objectgroup id="5" name="Objects">
+  <object id="2" name="rightPort" gid="23" x="592.5" y="127.75" width="16" height="16" rotation="90"/>
+  <object id="4" name="leftPort" gid="24" x="592.531" y="143.688" width="16" height="16" rotation="90"/>
+ </objectgroup>
  <layer id="2" name="Houses-n-Fences" width="40" height="25">
   <data encoding="csv">
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,

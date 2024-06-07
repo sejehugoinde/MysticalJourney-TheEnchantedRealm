@@ -16,6 +16,7 @@ class Pathfinder extends Phaser.Scene {
     create() {
         // Create a new tilemap which uses 16x16 tiles, and is 40 tiles wide and 25 tiles tall
         this.map = this.add.tilemap("three-farmhouses", this.TILESIZE, this.TILESIZE, this.TILEHEIGHT, this.TILEWIDTH);
+        this.physics.world.setBounds(0, 0, 200 * 18, 25 * 18);
 
         // Add a tileset to the map
         this.tileset = this.map.addTilesetImage("kenney-tiny-town", "tilemap_tiles");
@@ -27,63 +28,70 @@ class Pathfinder extends Phaser.Scene {
 
         // Create townsfolk sprite
         // Use setOrigin() to ensure the tile space computations work well
-        my.sprite.purpleTownie = this.add.sprite(this.tileXtoWorld(5), this.tileYtoWorld(5), "purple").setOrigin(0,0);
-        
+        my.sprite.purpleTownie = this.add.sprite(this.tileXtoWorld(5), this.tileYtoWorld(5), "purple").setOrigin(0, 0);
+
+        // Enable physics for the sprite without debug visuals
+        this.physics.add.existing(my.sprite.purpleTownie);
+        my.sprite.purpleTownie.body.setCollideWorldBounds(true);
+
         // Camera settings
         this.cameras.main.setBounds(0, 0, this.map.widthInPixels, this.map.heightInPixels);
+        this.cameras.main.setSize(config.width, config.height); // Set camera size to match the game config
         this.cameras.main.setZoom(this.SCALE);
 
-        // Create grid of visible tiles for use with path planning
-        let tinyTownGrid = this.layersToGrid([this.groundLayer, this.treesLayer, this.housesLayer]);
-
-        let walkables = [1, 2, 3, 30, 40, 41, 42, 43, 44, 95, 13, 14, 15, 25, 26, 27, 37, 38, 39, 70, 84];
-
-        // Initialize EasyStar pathfinder
-        this.finder = new EasyStar.js();
-
-        // Pass grid information to EasyStar
-        // EasyStar doesn't natively understand what is currently on-screen,
-        // so, you need to provide it that information
-        this.finder.setGrid(tinyTownGrid);
-
-        // Tell EasyStar which tiles can be walked on
-        this.finder.setAcceptableTiles(walkables);
+        // Add camera follow to the sprite
+        this.cameras.main.startFollow(my.sprite.purpleTownie, true, 0.25, 0.25); // (target, [,roundPixels][,lerpX][,lerpY])
+        this.cameras.main.setDeadzone(50, 50);
 
         this.activeCharacter = my.sprite.purpleTownie;
 
-        // Handle mouse clicks
-        // Handles the clicks on the map to make the character move
-        // The this parameter passes the current "this" context to the
-        // function this.handleClick()
-        this.input.on('pointerup',this.handleClick, this);
+        // Add key handlers for arrow keys
+        this.cursors = this.input.keyboard.createCursorKeys();
 
-        this.cKey = this.input.keyboard.addKey('C');
-        this.lowCost = false;
+        // Find the port to next level in the "Objects" layer in Phaser
+        this.leftPort = this.map.createFromObjects("Objects", {
+            name: "leftPort",
+            key: "tilemap_sheet",
+            frame: 23
+        })
 
+        this.rightPort = this.map.createFromObjects("Objects", {
+            name: "rightPort",
+            key: "tilemap_sheet",
+            frame: 22
+        })
+
+        // Enable collision handling
+        this.physics.world.enable(this.leftPort, Phaser.Physics.Arcade.STATIC_BODY);
+        this.physics.world.enable(this.rightPort, Phaser.Physics.Arcade.STATIC_BODY);
+
+        this.physics.add.overlap(my.sprite.purpleTownie, this.leftPort, (obj1, obj2) => {
+            this.scene.start("pathfinderScene");
+        });
+
+        this.physics.add.overlap(my.sprite.purpleTownie, this.rightPort, (obj1, obj2) => {
+            this.scene.start("pathfinderScene");
+        });
     }
 
     update() {
-        if (Phaser.Input.Keyboard.JustDown(this.cKey)) {
-            if (!this.lowCost) {
-                // Make the path low cost with respect to grassy areas
-                this.setCost(this.tileset);
-                this.lowCost = true;
-            } else {
-                // Restore everything to same cost
-                this.resetCost(this.tileset);
-                this.lowCost = false;
-            }
-        }
-    }
+        // Reset velocity
+        this.activeCharacter.body.setVelocity(0);
 
-    resetCost(tileset) {
-        for (let tileID = tileset.firstgid; tileID < tileset.total; tileID++) {
-            let props = tileset.getTileProperties(tileID);
-            if (props != null) {
-                if (props.cost != null) {
-                    this.finder.setTileCost(tileID, 1);
-                }
-            }
+        if(this.cursors.space.isDown)
+        {
+            this.activeCharacter.body.setVelocityY(-80);
+        }
+
+        // Check for arrow key inputs and move character accordingly
+        if (this.cursors.left.isDown) {
+            this.activeCharacter.body.setVelocityX(-100);
+        } else if (this.cursors.right.isDown) {
+            this.activeCharacter.body.setVelocityX(100);
+        } else if (this.cursors.up.isDown) {
+            this.activeCharacter.body.setVelocityY(-100);
+        } else if (this.cursors.down.isDown) {
+            this.activeCharacter.body.setVelocityY(100);
         }
     }
 
@@ -94,107 +102,4 @@ class Pathfinder extends Phaser.Scene {
     tileYtoWorld(tileY) {
         return tileY * this.TILESIZE;
     }
-
-    // layersToGrid
-    //
-    // Uses the tile layer information in this.map and outputs
-    // an array which contains the tile ids of the visible tiles on screen.
-    // This array can then be given to Easystar for use in path finding.
-    layersToGrid() {
-        let grid = [];
-    
-        // Loop over each row (y-coordinate)
-        for (let y = 0; y < this.map.height; y++) {
-            // Initialize a new row in the grid
-            grid[y] = [];
-    
-            // Loop over each column (x-coordinate)
-            for (let x = 0; x < this.map.width; x++) {
-                let tileID = 0; // Default to 0 if no tile is found
-    
-                // Loop over each layer to find the topmost tile
-                for (let layer of [this.groundLayer, this.treesLayer, this.housesLayer]) {
-                    let tile = layer.getTileAt(x, y);
-    
-                    // If a tile exists at this position on the layer, get its ID
-                    if (tile) {
-                        tileID = tile.index;
-                        break; // Break out of the loop once a tile is found
-                    }
-                }
-    
-                // Store the tile ID in the grid
-                grid[y][x] = tileID;
-            }
-        }
-    
-        return grid;
-    }    
-
-
-    handleClick(pointer) {
-        let x = pointer.x / this.SCALE;
-        let y = pointer.y / this.SCALE;
-        let toX = Math.floor(x/this.TILESIZE);
-        var toY = Math.floor(y/this.TILESIZE);
-        var fromX = Math.floor(this.activeCharacter.x/this.TILESIZE);
-        var fromY = Math.floor(this.activeCharacter.y/this.TILESIZE);
-        console.log('going from ('+fromX+','+fromY+') to ('+toX+','+toY+')');
-    
-        this.finder.findPath(fromX, fromY, toX, toY, (path) => {
-            if (path === null) {
-                console.warn("Path was not found.");
-            } else {
-                console.log(path);
-                this.moveCharacter(path, this.activeCharacter);
-            }
-        });
-        this.finder.calculate(); // ask EasyStar to compute the path
-        // When the path computing is done, the arrow function given with
-        // this.finder.findPath() will be called.
-    }
-    
-    moveCharacter(path, character) {
-        // Sets up a list of tweens, one for each tile to walk, that will be chained by the timeline
-        var tweens = [];
-        for(var i = 0; i < path.length-1; i++){
-            var ex = path[i+1].x;
-            var ey = path[i+1].y;
-            tweens.push({
-                x: ex*this.map.tileWidth,
-                y: ey*this.map.tileHeight,
-                duration: 200
-            });
-        }
-    
-        this.tweens.chain({
-            targets: character,
-            tweens: tweens
-        });
-
-    }
-
-    // A function which takes as input a tileset and then iterates through all
-    // of the tiles in the tileset to retrieve the cost property, and then 
-    // uses the value of the cost property to inform EasyStar, using EasyStar's
-    // setTileCost(tileID, tileCost) function.
-	setCost(tileset) {
-		// Iterate over each tile in the tileset
-		for (let tileID = tileset.firstgid; tileID <= tileset.total; tileID++) {
-        // Get the properties of the current tile
-			let props = tileset.tileProperties[tileID - 1]; // Adjust for zero-based indexing
-
-			// Check if properties exist for the current tile
-			if (props) {
-				// Check if the current tile has a cost property
-				if (props.cost !== undefined) {
-					// Retrieve the cost value from the properties
-					let cost = parseInt(props.cost); // Ensure cost is parsed as an integer
-
-					// Set the tile cost for EasyStar
-					this.finder.setTileCost(tileID, cost);
-				}
-			}
-		}
-	}
 }
