@@ -66,11 +66,11 @@ class EnchantedForest extends Phaser.Scene {
         this.physics.world.enable(this.rightPort, Phaser.Physics.Arcade.STATIC_BODY);
 
         this.physics.add.overlap(my.sprite.purpleTownie, this.leftPort, (obj1, obj2) => {
-            this.scene.start("pathfinderScene");
+            this.scene.start("mysticalCastle");
         });
 
         this.physics.add.overlap(my.sprite.purpleTownie, this.rightPort, (obj1, obj2) => {
-            this.scene.start("pathfinderScene");
+            this.scene.start("mysticalCastle");
         });
     }
 

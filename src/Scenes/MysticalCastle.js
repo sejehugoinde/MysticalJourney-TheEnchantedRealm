@@ -1,6 +1,6 @@
-class Pathfinder extends Phaser.Scene {
+class mysticalCastle extends Phaser.Scene {
     constructor() {
-        super("pathfinderScene");
+        super("mysticalCastleScene");
     }
 
     preload() {
