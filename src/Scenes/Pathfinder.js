@@ -86,8 +86,10 @@ class Pathfinder extends Phaser.Scene {
         // Check for arrow key inputs and move character accordingly
         if (this.cursors.left.isDown) {
             this.activeCharacter.body.setVelocityX(-100);
+            this.activeCharacter.flipX = true; // Flip the sprite to face left
         } else if (this.cursors.right.isDown) {
             this.activeCharacter.body.setVelocityX(100);
+            this.activeCharacter.flipX = false; // Flip the sprite to face right
         } else if (this.cursors.up.isDown) {
             this.activeCharacter.body.setVelocityY(-100);
         } else if (this.cursors.down.isDown) {
