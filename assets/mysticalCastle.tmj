@@ -39,6 +39,41 @@
          "y":0
         }, 
         {
+         "draworder":"topdown",
+         "id":5,
+         "name":"Objects",
+         "objects":[
+                {
+                 "gid":23,
+                 "height":16,
+                 "id":2,
+                 "name":"rightPort",
+                 "rotation":90,
+                 "type":"",
+                 "visible":true,
+                 "width":16,
+                 "x":592.5,
+                 "y":127.75
+                }, 
+                {
+                 "gid":24,
+                 "height":16,
+                 "id":4,
+                 "name":"leftPort",
+                 "rotation":90,
+                 "type":"",
+                 "visible":true,
+                 "width":16,
+                 "x":592.531,
+                 "y":143.688
+                }],
+         "opacity":1,
+         "type":"objectgroup",
+         "visible":true,
+         "x":0,
+         "y":0
+        }, 
+        {
          "data":[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -110,8 +145,8 @@
          "x":0,
          "y":0
         }],
- "nextlayerid":4,
- "nextobjectid":1,
+ "nextlayerid":6,
+ "nextobjectid":5,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.10.2",

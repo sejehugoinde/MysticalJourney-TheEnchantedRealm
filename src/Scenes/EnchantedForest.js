@@ -1,6 +1,6 @@
-class Pathfinder extends Phaser.Scene {
+class EnchantedForest extends Phaser.Scene {
     constructor() {
-        super("pathfinderScene");
+        super("enchantedForestScene");
     }
 
     preload() {
@@ -15,7 +15,7 @@ class Pathfinder extends Phaser.Scene {
 
     create() {
         // Create a new tilemap which uses 16x16 tiles, and is 40 tiles wide and 25 tiles tall
-        this.map = this.add.tilemap("mysticalCastle", this.TILESIZE, this.TILESIZE, this.TILEHEIGHT, this.TILEWIDTH);
+        this.map = this.add.tilemap("enchantedForest", this.TILESIZE, this.TILESIZE, this.TILEHEIGHT, this.TILEWIDTH);
         this.physics.world.setBounds(0, 0, 200 * 18, 25 * 18);
 
         // Add a tileset to the map
@@ -66,11 +66,11 @@ class Pathfinder extends Phaser.Scene {
         this.physics.world.enable(this.rightPort, Phaser.Physics.Arcade.STATIC_BODY);
 
         this.physics.add.overlap(my.sprite.purpleTownie, this.leftPort, (obj1, obj2) => {
-            this.scene.start("darkCaveScene");
+            this.scene.start("pathfinderScene");
         });
 
         this.physics.add.overlap(my.sprite.purpleTownie, this.rightPort, (obj1, obj2) => {
-            this.scene.start("darkCaveScene");
+            this.scene.start("pathfinderScene");
         });
     }
 
