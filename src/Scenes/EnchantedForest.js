@@ -62,6 +62,23 @@ class EnchantedForest extends Phaser.Scene {
         this.sword = this.add.sprite(0, 0, "sword").setOrigin(0.5, 0.5);
         this.physics.add.existing(this.sword);
         this.sword.body.setCollideWorldBounds(true);
+        // Flag to track if the "X" key is pressed
+        this.isXKeyDown = false;
+
+        // Listen for "X" key press event
+        this.input.keyboard.on('keydown-X', () => {
+            this.isXKeyDown = true;
+        });
+
+        // Listen for "X" key release event
+        this.input.keyboard.on('keyup-X', () => {
+            this.isXKeyDown = false;
+        });
+
+        // Listen for "X" key press event
+        this.input.keyboard.on('keydown-X', () => {
+            this.sword.setVisible(true); // Show the sword when "X" key is pressed
+        });
 
         // Camera settings
         this.cameras.main.setBounds(0, 0, this.map.widthInPixels, this.map.heightInPixels);
@@ -115,8 +132,15 @@ class EnchantedForest extends Phaser.Scene {
         });
 
         this.physics.add.overlap(this.sword, this.weakOrc, () => {
+            // Disable physics for each object in the orc group
+            this.orcGroup.children.iterate(child => {
+                this.physics.world.disableBody(child.body);
+            });
+
+            // Make the orc group invisible
             this.orcGroup.setVisible(false);
         });
+
 
         // Set up random movement for the weak orc
         this.orcSpeed = 15; // Reduced speed of the orc
@@ -190,6 +214,21 @@ class EnchantedForest extends Phaser.Scene {
         } else if (this.cursors.down.isDown) {
             this.activeCharacter.body.setVelocityY(100);
         }
+
+        if (this.isXKeyDown) {
+            // Update sword physics only when "X" key is pressed
+            this.physics.world.enable(this.sword);
+            this.sword.setVisible(true);
+            this.updateSwordPosition();
+        } else {
+            // Disable sword physics when "X" key is released
+            if (this.sword.body) { // Check if the sword body exists before disabling
+                this.physics.world.remove(this.sword.body);
+                this.sword.setVisible(false);
+            }
+
+        }
+
 
         // Update sword position relative to the character
         this.updateSwordPosition();
