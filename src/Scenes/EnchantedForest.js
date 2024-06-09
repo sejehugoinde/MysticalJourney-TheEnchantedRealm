@@ -25,27 +25,43 @@ class EnchantedForest extends Phaser.Scene {
         this.treesLayer = this.map.createLayer("Trees-n-Bushes", this.tileset, 0, 0);
         this.housesLayer = this.map.createLayer("Houses-n-Fences", this.tileset, 0, 0);
 
-        this.groundLayer.setCollisionByProperty({ collides: true });
+        // Create orc group
+        this.orcGroup = this.add.group();
+
+        // Create orc sprite
+        this.weakOrc = this.physics.add.sprite(this.tileXtoWorld(25), this.tileYtoWorld(15), "weakOrch").setOrigin(0, 0);
+        this.weakOrc.setScale(2); // Scale up the orc sprite
+        this.orcGroup.add(this.weakOrc);
+
+        // Create the axe as a physics sprite and add it to the orc group
+        this.axe = this.physics.add.sprite(this.weakOrc.x, this.weakOrc.y, "axe").setOrigin(0.5, 0.5);
+        this.axe.setCollideWorldBounds(true);
+        this.orcGroup.add(this.axe);
+
+        // Set up collision between the axe and the ground layer
+        this.physics.add.collider(this.axe, this.groundLayer);
 
         // Create townsfolk sprite
-        // Use setOrigin() to ensure the tile space computations work well
-        this.purpleTownie = this.add.sprite(this.tileXtoWorld(5), this.tileYtoWorld(5), "purple").setOrigin(0, 0);
+        this.purpleTownie = this.add.sprite(this.tileXtoWorld(25), this.tileYtoWorld(5), "purple").setOrigin(0, 0);
 
-        // Create orcs
-        this.weakOrc = this.physics.add.sprite(this.tileXtoWorld(25), this.tileYtoWorld(15), "weakOrch").setOrigin(0,0);
+        // Set the depth of the townsfolk sprite
+        this.purpleTownie.setDepth(1);
 
-        // Enable physics for the sprite without debug visuals
+        // Set the depth of the orc group to be lower than the townsfolk sprite
+        this.orcGroup.setDepth(0);
+
+        // Enable physics for the townsfolk sprite without debug visuals
         this.physics.add.existing(this.purpleTownie);
         this.purpleTownie.body.setCollideWorldBounds(true);
 
         // Enable collision handling
-        this.physics.add.collider(this.purpleTownie, this.groundLayer, () => {
-        });
-        this.physics.add.collider(this.weakOrc, this.groundLayer);
-
+        this.physics.add.collider(this.purpleTownie, this.groundLayer, () => { });
+        this.physics.add.collider(this.axe, this.groundLayer);
 
         // Create sword sprite using a frame from the spritesheet
-        this.sword = this.add.sprite(0, 0, "colored_tilemap_sheet", 70).setOrigin(0.5, 0.5);
+        this.sword = this.add.sprite(0, 0, "sword").setOrigin(0.5, 0.5);
+        this.physics.add.existing(this.sword);
+        this.sword.body.setCollideWorldBounds(true);
 
         // Camera settings
         this.cameras.main.setBounds(0, 0, this.map.widthInPixels, this.map.heightInPixels);
@@ -79,7 +95,7 @@ class EnchantedForest extends Phaser.Scene {
             key: "colored_tilemap_sheet",
             frame: 136
         });
- 
+
         this.key = this.map.createFromObjects("Objects", {
             name: "key",
             key: "colored_tilemap_sheet",
@@ -97,7 +113,62 @@ class EnchantedForest extends Phaser.Scene {
         this.physics.add.overlap(this.purpleTownie, this.rightPort, (obj1, obj2) => {
             this.scene.start("mysticalCastle");
         });
+
+        this.physics.add.overlap(this.sword, this.weakOrc, () => {
+            this.orcGroup.setVisible(false);
+        });
+
+        // Set up random movement for the weak orc
+        this.orcSpeed = 15; // Reduced speed of the orc
+        this.setRandomOrcMovement();
+        this.setRandomAxeMovement();
+
+        // Handle collision between the purple townie and the axe
+        this.physics.add.overlap(this.purpleTownie, this.axe, () => {
+            this.scene.restart()
+        });
     }
+
+
+    setRandomOrcMovement() {
+        // Generate a random direction and speed
+        const directions = [
+            { x: 1, y: 0 }, // right
+            { x: -1, y: 0 }, // left
+            { x: 0, y: 1 }, // down
+            { x: 0, y: -1 } // up
+        ];
+        const randomDirection = Phaser.Math.RND.pick(directions);
+
+        // Set velocity for both orc and axe
+        this.orcGroup.children.iterate(child => {
+            child.setVelocity(randomDirection.x * this.orcSpeed, randomDirection.y * this.orcSpeed);
+        });
+
+        // Set a timer to change direction after a random interval
+        const randomInterval = Phaser.Math.Between(2000, 4000); // Increase the interval range for slower changes
+        this.time.delayedCall(randomInterval, this.setRandomOrcMovement, [], this);
+    }
+
+
+    setRandomAxeMovement() {
+        // Define movement parameters
+        const moveDistance = 100; // Distance the axe will move
+        const moveSpeed = 2000; // Speed of the movement
+
+        // Move the axe back and forth in relation to the orc
+        this.tweens.add({
+            targets: this.axe,
+            x: this.weakOrc.x + moveDistance, // Move relative to the orc's position
+            duration: moveSpeed,
+            ease: 'Linear',
+            yoyo: true, // Go back to the starting position
+            repeat: -1 // Repeat indefinitely
+        });
+    }
+
+
+
 
     update() {
         // Reset velocity
@@ -125,14 +196,18 @@ class EnchantedForest extends Phaser.Scene {
     }
 
     updateSwordPosition() {
-        // Adjust these offsets to position the sword correctly
-        const swordOffsetX = this.activeCharacter.flipX ? -5 : 5; // Adjust this value to position the sword horizontally
-        const swordOffsetY = 5;  // Adjust this value to position the sword vertically
+        // Calculate sword position relative to the townie's center
+        const swordOffsetX = this.activeCharacter.flipX ? -5 : 20; // Distance from the townie's center
+        const swordOffsetY = 10; // Adjust this value to position the sword vertically
 
         // Update the sword position
         this.sword.x = this.activeCharacter.x + swordOffsetX;
         this.sword.y = this.activeCharacter.y + swordOffsetY;
+
+        // Flip the sword sprite based on the movement direction of the townie
+        this.sword.setFlipX(this.activeCharacter.flipX);
     }
+
 
     tileXtoWorld(tileX) {
         return tileX * this.TILESIZE;

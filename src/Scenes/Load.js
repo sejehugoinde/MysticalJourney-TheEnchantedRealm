@@ -9,7 +9,9 @@ class Load extends Phaser.Scene {
         // Load townsfolk
         this.load.image("purple", "purple_townie.png");
         this.load.image("blue", "blue_townie.png");
-        this.load.image("weakOrch", "tile_0004.png");
+        this.load.image("weakOrch", "weak_orch.png");
+        this.load.image("axe", "weakOrcAttack.png");
+        this.load.image("sword", "weakOrcAttack.png");
 
 
         // Load tilemap images with unique keys
