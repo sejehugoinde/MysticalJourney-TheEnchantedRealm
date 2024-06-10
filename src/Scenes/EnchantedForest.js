@@ -16,6 +16,7 @@ class EnchantedForest extends Phaser.Scene {
         this.keyFlag = false;
         this.weaponFlag = false;
         this.isVulnerable = true;
+        this.isXKeyDown = false;
 
         // Create a new tilemap which uses 16x16 tiles, and is 40 tiles wide and 25 tiles tall
         this.map = this.add.tilemap("enchantedForest", this.TILESIZE, this.TILESIZE, this.TILEHEIGHT, this.TILEWIDTH);
@@ -29,12 +30,66 @@ class EnchantedForest extends Phaser.Scene {
         this.treesLayer = this.map.createLayer("Trees-n-Bushes", this.tileset, 0, 0);
         this.housesLayer = this.map.createLayer("Houses-n-Fences", this.tileset, 0, 0);
 
-        // Create orc group
-        this.orcGroup = this.add.group();
+        // Create townsfolk sprite
+        this.purpleTownie = this.add.sprite(this.tileXtoWorld(25), this.tileYtoWorld(5), "purple").setOrigin(0, 0);
 
-        // Create orc sprite
+        // Set the depth of the townsfolk sprite
+        this.purpleTownie.setDepth(1);
+        
+        // Find the objects in the "Objects" layer in Phaser
+        this.closedDoorLeft = this.map.createFromObjects("Objects", {
+            name: "closedDoorLeft",
+            key: "colored_tilemap_sheet",
+            frame: 75
+        });
+
+        this.closedDoorRight = this.map.createFromObjects("Objects", {
+            name: "closedDoorRight",
+            key: "colored_tilemap_sheet",
+            frame: 76
+        });
+
+        this.fire = this.map.createFromObjects("Objects", {
+            name: "fire",
+            key: "colored_tilemap_sheet",
+            frame: 136
+        });
+
+        this.key = this.map.createFromObjects("Objects", {
+            name: "key",
+            key: "colored_tilemap_sheet",
+            frame: 90
+        });
+
+        this.chest = this.map.createFromObjects("Objects", {
+            name: "chest",
+            key: "colored_tilemap_sheet",
+            frame: 57
+        });
+
+        this.coin = this.map.createFromObjects("Objects", {
+            name: "coin",
+            key: "colored_tilemap_sheet",
+            frame: 88
+        });
+
+        // Create groups
+        this.orcGroup = this.add.group();
+        this.fireGroup = this.add.group(this.fire);
+        this.coinGroup = this.add.group(this.coin);
+        this.chestGroup = this.add.group(this.chest);
+        this.heartsGroup = this.add.group();
+
+        // Add three hearts above the character
+        const heart1 = this.physics.add.sprite(this.purpleTownie.x, this.purpleTownie.y - 20, "fullHeart").setOrigin(0.5, 0.5);
+        const heart2 = this.physics.add.sprite(this.purpleTownie.x, this.purpleTownie.y - 40, "fullHeart").setOrigin(0.5, 0.5);
+        const heart3 = this.physics.add.sprite(this.purpleTownie.x, this.purpleTownie.y - 60, "fullHeart").setOrigin(0.5, 0.5);
+
+        this.heartsGroup.addMultiple([heart1, heart2, heart3]);
+
+        // Create orc sprite and add it to the orc group
         this.weakOrc = this.physics.add.sprite(this.tileXtoWorld(25), this.tileYtoWorld(15), "weakOrch").setOrigin(0, 0);
-        this.weakOrc.setScale(2); // Scale up the orc sprite
+        this.weakOrc.setScale(2);
         this.orcGroup.add(this.weakOrc);
 
         // Create the axe as a physics sprite and add it to the orc group
@@ -42,14 +97,18 @@ class EnchantedForest extends Phaser.Scene {
         this.axe.setCollideWorldBounds(true);
         this.orcGroup.add(this.axe);
 
-        // Set up collision between the axe and the ground layer
-        this.physics.add.collider(this.axe, this.groundLayer);
+        // Set up random movement for the weak orc
+        this.orcSpeed = 5; // Reduced speed of the orc
+        this.setRandomOrcMovement();
+        this.setRandomAxeMovement();
 
-        // Create townsfolk sprite
-        this.purpleTownie = this.add.sprite(this.tileXtoWorld(25), this.tileYtoWorld(5), "purple").setOrigin(0, 0);
-
-        // Set the depth of the townsfolk sprite
-        this.purpleTownie.setDepth(1);
+        // Add this to the create method to repeat axe throwing every 3 seconds
+        this.time.addEvent({
+            delay: 3000, // 3 seconds
+            callback: this.setRandomAxeMovement,
+            callbackScope: this,
+            loop: true
+        });
 
         // Set the depth of the orc group to be lower than the townsfolk sprite
         this.orcGroup.setDepth(0);
@@ -61,13 +120,12 @@ class EnchantedForest extends Phaser.Scene {
         // Enable collision handling
         this.physics.add.collider(this.purpleTownie, this.groundLayer, () => { });
         this.physics.add.collider(this.axe, this.groundLayer);
+        this.physics.add.collider(this.axe, this.groundLayer);
 
         // Create sword sprite using a frame from the spritesheet
         this.sword = this.add.sprite(0, 0, "sword").setOrigin(0.5, 0.5);
         this.physics.add.existing(this.sword);
         this.sword.body.setCollideWorldBounds(true);
-        // Flag to track if the "X" key is pressed
-        this.isXKeyDown = false;
 
         // Listen for "X" key press event
         this.input.keyboard.on('keydown-X', () => {
@@ -93,47 +151,8 @@ class EnchantedForest extends Phaser.Scene {
         this.cameras.main.startFollow(this.purpleTownie, true, 0.25, 0.25); // (target, [,roundPixels][,lerpX][,lerpY])
         this.cameras.main.setDeadzone(50, 50);
 
-        this.activeCharacter = this.purpleTownie;
-
         // Add key handlers for arrow keys
         this.cursors = this.input.keyboard.createCursorKeys();
-
-        // Find the port to next level in the "Objects" layer in Phaser
-        this.closedDoorLeft = this.map.createFromObjects("Objects", {
-            name: "closedDoorLeft",
-            key: "colored_tilemap_sheet",
-            frame: 75
-        });
-
-        this.closedDoorRight = this.map.createFromObjects("Objects", {
-            name: "closedDoorRight",
-            key: "colored_tilemap_sheet",
-            frame: 76
-        });
-
-        this.fire = this.map.createFromObjects("Objects", {
-            name: "fire",
-            key: "colored_tilemap_sheet",
-            frame: 136
-        });
-
-        this.key = this.map.createFromObjects("Objects", {
-            name: "key",
-            key: "colored_tilemap_sheet",
-            frame: 88
-        });
-
-        this.chest = this.map.createFromObjects("Objects", {
-            name: "chest",
-            key: "colored_tilemap_sheet",
-            frame: 57
-        });
-
-        this.coin = this.map.createFromObjects("Objects", {
-            name: "coin",
-            key: "colored_tilemap_sheet",
-            frame: 88
-        });
 
         // Enable collision handling
         this.physics.world.enable(this.key, Phaser.Physics.Arcade.STATIC_BODY);
@@ -142,11 +161,6 @@ class EnchantedForest extends Phaser.Scene {
         this.physics.world.enable(this.fire, Phaser.Physics.Arcade.STATIC_BODY);
         this.physics.world.enable(this.coin, Phaser.Physics.Arcade.STATIC_BODY);
         this.physics.world.enable(this.chest, Phaser.Physics.Arcade.STATIC_BODY);
-
-        // Create a Phaser group out of the array this.fire
-        this.fireGroup = this.add.group(this.fire);
-        this.coinGroup = this.add.group(this.coin);
-        this.chestGroup = this.add.group(this.chest);
 
         this.physics.add.overlap(this.purpleTownie, this.closedDoorRight, (obj1, obj2) => {
             if (!this.keyFlag) {
@@ -177,30 +191,6 @@ class EnchantedForest extends Phaser.Scene {
             // Make the orc group invisible
             this.orcGroup.setVisible(false);
         });
-
-
-        // Set up random movement for the weak orc
-        this.orcSpeed = 5; // Reduced speed of the orc
-        this.setRandomOrcMovement();
-        this.setRandomAxeMovement();
-
-        // Add this to the create method to repeat axe throwing every 3 seconds
-        this.time.addEvent({
-            delay: 3000, // 3 seconds
-            callback: this.setRandomAxeMovement,
-            callbackScope: this,
-            loop: true
-        });
-
-        // Create hearts group
-        this.heartsGroup = this.add.group();
-
-        // Add three hearts above the character
-        const heart1 = this.physics.add.sprite(this.activeCharacter.x, this.activeCharacter.y - 20, "fullHeart").setOrigin(0.5, 0.5);
-        const heart2 = this.physics.add.sprite(this.activeCharacter.x, this.activeCharacter.y - 40, "fullHeart").setOrigin(0.5, 0.5);
-        const heart3 = this.physics.add.sprite(this.activeCharacter.x, this.activeCharacter.y - 60, "fullHeart").setOrigin(0.5, 0.5);
-
-        this.heartsGroup.addMultiple([heart1, heart2, heart3]);
 
         this.physics.add.overlap(this.purpleTownie, this.axe, () => {
             // Check if the character is currently vulnerable
@@ -237,7 +227,7 @@ class EnchantedForest extends Phaser.Scene {
         });
 
         this.physics.add.overlap(this.purpleTownie, this.coinGroup, () => {
-           //TODO: implement score system
+            //TODO: implement score system
         });
 
         this.physics.add.overlap(this.purpleTownie, this.chestGroup, () => {
@@ -315,7 +305,7 @@ class EnchantedForest extends Phaser.Scene {
         this.tweenAxeToRight.play();
 
         // Handle collision detection with coins
-        this.physics.add.overlap(this.activeCharacter, this.key, (obj1, obj2) => {
+        this.physics.add.overlap(this.purpleTownie, this.key, (obj1, obj2) => {
             obj2.destroy();
             alert("You got a key!");
             this.keyFlag = true;
@@ -324,23 +314,23 @@ class EnchantedForest extends Phaser.Scene {
 
     update() {
         // Reset velocity
-        this.activeCharacter.body.setVelocity(0);
+        this.purpleTownie.body.setVelocity(0);
 
         if (this.cursors.space.isDown) {
-            this.activeCharacter.body.setVelocityY(-80);
+            this.purpleTownie.body.setVelocityY(-80);
         }
 
         // Check for arrow key inputs and move character accordingly
         if (this.cursors.left.isDown) {
-            this.activeCharacter.body.setVelocityX(-100);
-            this.activeCharacter.flipX = true; // Flip the sprite to face left
+            this.purpleTownie.body.setVelocityX(-100);
+            this.purpleTownie.flipX = true; // Flip the sprite to face left
         } else if (this.cursors.right.isDown) {
-            this.activeCharacter.body.setVelocityX(100);
-            this.activeCharacter.flipX = false; // Flip the sprite to face right
+            this.purpleTownie.body.setVelocityX(100);
+            this.purpleTownie.flipX = false; // Flip the sprite to face right
         } else if (this.cursors.up.isDown) {
-            this.activeCharacter.body.setVelocityY(-100);
+            this.purpleTownie.body.setVelocityY(-100);
         } else if (this.cursors.down.isDown) {
-            this.activeCharacter.body.setVelocityY(100);
+            this.purpleTownie.body.setVelocityY(100);
         }
 
         if (this.isXKeyDown && this.weaponFlag) {
@@ -360,7 +350,7 @@ class EnchantedForest extends Phaser.Scene {
         let offsetX = -2; // Initial offset from the character's x position
 
         this.heartsGroup.children.iterate(heart => {
-            heart.setPosition(this.activeCharacter.x + offsetX, this.activeCharacter.y - 2); // Adjust y-position to be above the character's head
+            heart.setPosition(this.purpleTownie.x + offsetX, this.purpleTownie.y - 2); // Adjust y-position to be above the character's head
             offsetX += 10; // Increment the offset for each heart
         });
 
@@ -374,15 +364,15 @@ class EnchantedForest extends Phaser.Scene {
 
     updateSwordPosition() {
         // Calculate sword position relative to the townie's center
-        const swordOffsetX = this.activeCharacter.flipX ? -5 : 20; // Distance from the townie's center
+        const swordOffsetX = this.purpleTownie.flipX ? -5 : 20; // Distance from the townie's center
         const swordOffsetY = 10; // Adjust this value to position the sword vertically
 
         // Update the sword position
-        this.sword.x = this.activeCharacter.x + swordOffsetX;
-        this.sword.y = this.activeCharacter.y + swordOffsetY;
+        this.sword.x = this.purpleTownie.x + swordOffsetX;
+        this.sword.y = this.purpleTownie.y + swordOffsetY;
 
         // Flip the sword sprite based on the movement direction of the townie
-        this.sword.setFlipX(this.activeCharacter.flipX);
+        this.sword.setFlipX(this.purpleTownie.flipX);
     }
 
     removeHeart() {
