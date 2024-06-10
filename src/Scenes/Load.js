@@ -26,19 +26,19 @@ class Load extends Phaser.Scene {
         this.load.spritesheet("tilemap_sheet", "tilemap_packed.png", {
             frameWidth: 16,
             frameHeight: 16
-        });                 // Packed tilemap
+        });
 
-
-
-        this.load.tilemapTiledJSON("mysticalCastle", "mysticalCastle.tmj");   // Tilemap in JSON
+        // Tilemap in JSON
+        this.load.tilemapTiledJSON("mysticalCastle", "mysticalCastle.tmj");
         this.load.tilemapTiledJSON("darkCave", "darkCave.tmj");
-        this.load.tilemapTiledJSON("enchantedForest", "enchantedForest.tmj");   // Tilemap i
-        this.load.tilemapTiledJSON("start", "start.tmj");   // Tilemap in JSON
-    }
+        this.load.tilemapTiledJSON("enchantedForest", "enchantedForest.tmj");
+        this.load.tilemapTiledJSON("start", "start.tmj");
+        this.load.tilemapTiledJSON("rules", "rules.tmj");
+
+    }   
 
     create() {
         
-
          // ...and pass to the next Scene
          this.scene.start("startScene");
     }

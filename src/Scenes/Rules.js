@@ -18,18 +18,20 @@ class Rules extends Phaser.Scene {
 
     create() {
         // Adjusting text positions and sizes
-        this.my.text.startGame = this.add.bitmapText(10, 100, "rocketSquare", "Play the game");
-        this.my.text.startGame.setFontSize(8); // Set the font size to a smaller value
-        this.my.text.startGame.setDepth(1); // Set depth to render above tilemap layers
+        const textStyle = { fontSize: 8 };
 
-        // Position "Learn the rules" to the right of "Play the game"
-        const startGameWidth = this.my.text.startGame.width;
-        this.my.text.learnRules = this.add.bitmapText(10 + startGameWidth + 20, 100, "rocketSquare", "Learn the rules of the game"); // 20 pixels right
-        this.my.text.learnRules.setFontSize(8); // Set the font size to a smaller value
-        this.my.text.learnRules.setDepth(1); // Set depth to render above tilemap layers
+        this.my.text.arrows = this.add.bitmapText(10, 50, "rocketSquare", "Use the arrows to move the character around", textStyle.fontSize);
+        this.my.text.spaceBar = this.add.bitmapText(10, 70, "rocketSquare", "Use the space-bar to make the character jump up", textStyle.fontSize);
+        this.my.text.weapon = this.add.bitmapText(10, 90, "rocketSquare", "If you equip a weapon then you can use x-key to hit", textStyle.fontSize);
+        this.my.text.worlds = this.add.bitmapText(10, 110, "rocketSquare", "You will have to go through three worlds in order to win the game.\nIn every world you get spawned as a new character", textStyle.fontSize);
+
+        this.my.text.arrows.setDepth(1); // Set depth to render above tilemap layers
+        this.my.text.spaceBar.setDepth(1); // Set depth to render above tilemap layers
+        this.my.text.weapon.setDepth(1); // Set depth to render above tilemap layers
+        this.my.text.worlds.setDepth(1); // Set depth to render above tilemap layers
 
         // Create a new tilemap which uses 16x16 tiles, and is 40 tiles wide and 25 tiles tall
-        this.map = this.add.tilemap("start", this.TILESIZE, this.TILESIZE, this.TILEHEIGHT, this.TILEWIDTH);
+        this.map = this.add.tilemap("rules", this.TILESIZE, this.TILESIZE, this.TILEHEIGHT, this.TILEWIDTH);
         this.physics.world.setBounds(0, 0, 200 * 18, 25 * 18);
 
         // Add a tileset to the map
