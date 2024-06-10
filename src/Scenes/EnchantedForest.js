@@ -143,9 +143,17 @@ class EnchantedForest extends Phaser.Scene {
 
 
         // Set up random movement for the weak orc
-        this.orcSpeed = 15; // Reduced speed of the orc
+        this.orcSpeed = 5; // Reduced speed of the orc
         this.setRandomOrcMovement();
         this.setRandomAxeMovement();
+
+        // Add this to the create method to repeat axe throwing every 3 seconds
+        this.time.addEvent({
+            delay: 3000, // 3 seconds
+            callback: this.setRandomAxeMovement,
+            callbackScope: this,
+            loop: true
+        });
 
         // Handle collision between the purple townie and the axe
         this.physics.add.overlap(this.purpleTownie, this.axe, () => {
@@ -177,22 +185,44 @@ class EnchantedForest extends Phaser.Scene {
 
     setRandomAxeMovement() {
         // Define movement parameters
-        const moveDistance = 100; // Distance the axe will move
-        const moveSpeed = 2000; // Speed of the movement
+        const moveDistance = 50; // Distance the axe will move away from the orc
+        const moveSpeed = 1000; // Speed of the movement in milliseconds
 
-        // Move the axe back and forth in relation to the orc
-        this.tweens.add({
+        // Clear any existing tweens on the axe
+        this.tweens.killTweensOf(this.axe);
+
+        // Tween to move the axe away from the orc
+        this.tweenAxeToRight = this.tweens.add({
             targets: this.axe,
-            x: this.weakOrc.x + moveDistance, // Move relative to the orc's position
+            x: () => this.weakOrc.x + moveDistance, // Move relative to the orc's position
+            y: () => this.weakOrc.y, // Keep the axe at the same vertical position as the orc
             duration: moveSpeed,
             ease: 'Linear',
-            yoyo: true, // Go back to the starting position
-            repeat: -1 // Repeat indefinitely
+            onStart: () => {
+                this.axe.flipX = false; // Ensure the axe is not flipped initially
+            },
+            onComplete: () => {
+                this.axe.flipX = true; // Flip the axe to look like it has been thrown
+                this.tweenAxeToLeft.play(); // Start the return tween
+            }
         });
+
+        // Tween to move the axe back to the orc
+        this.tweenAxeToLeft = this.tweens.add({
+            targets: this.axe,
+            x: () => this.weakOrc.x, // Move back to the orc's position
+            y: () => this.weakOrc.y, // Keep the axe at the same vertical position as the orc
+            duration: moveSpeed,
+            ease: 'Linear',
+            paused: true, // Start paused, will be played on completion of the first tween
+            onComplete: () => {
+                this.axe.flipX = false; // Reset flip for return animation
+            }
+        });
+
+        // Start the first tween
+        this.tweenAxeToRight.play();
     }
-
-
-
 
     update() {
         // Reset velocity
@@ -204,15 +234,15 @@ class EnchantedForest extends Phaser.Scene {
 
         // Check for arrow key inputs and move character accordingly
         if (this.cursors.left.isDown) {
-            this.activeCharacter.body.setVelocityX(-100);
+            this.activeCharacter.body.setVelocityX(-20);
             this.activeCharacter.flipX = true; // Flip the sprite to face left
         } else if (this.cursors.right.isDown) {
-            this.activeCharacter.body.setVelocityX(100);
+            this.activeCharacter.body.setVelocityX(20);
             this.activeCharacter.flipX = false; // Flip the sprite to face right
         } else if (this.cursors.up.isDown) {
-            this.activeCharacter.body.setVelocityY(-100);
+            this.activeCharacter.body.setVelocityY(-20);
         } else if (this.cursors.down.isDown) {
-            this.activeCharacter.body.setVelocityY(100);
+            this.activeCharacter.body.setVelocityY(20);
         }
 
         if (this.isXKeyDown) {
@@ -246,7 +276,6 @@ class EnchantedForest extends Phaser.Scene {
         // Flip the sword sprite based on the movement direction of the townie
         this.sword.setFlipX(this.activeCharacter.flipX);
     }
-
 
     tileXtoWorld(tileX) {
         return tileX * this.TILESIZE;
