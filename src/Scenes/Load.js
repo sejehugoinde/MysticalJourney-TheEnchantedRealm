@@ -12,7 +12,7 @@ class Load extends Phaser.Scene {
         this.load.image("weakOrch", "weak_orch.png");
         this.load.image("axe", "weakOrcAttack.png");
         this.load.image("sword", "weakOrcAttack.png");
-
+        this.load.image("fullHeart", "fullHeart.png");
 
         // Load tilemap images with unique keys
         this.load.image("colored_tilemap_tiles", "colored_tilemap_packed.png");

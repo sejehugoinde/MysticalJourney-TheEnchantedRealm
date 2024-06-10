@@ -13,8 +13,9 @@ class EnchantedForest extends Phaser.Scene {
     }
 
     create() {
-
         this.keyFlag = false;
+        this.isVulnerable = true;
+
         // Create a new tilemap which uses 16x16 tiles, and is 40 tiles wide and 25 tiles tall
         this.map = this.add.tilemap("enchantedForest", this.TILESIZE, this.TILESIZE, this.TILEHEIGHT, this.TILEWIDTH);
         this.physics.world.setBounds(0, 0, 200 * 18, 25 * 18);
@@ -159,7 +160,7 @@ class EnchantedForest extends Phaser.Scene {
                 this.scene.start("mysticalCastleScene");
             }
         });
-        
+
         this.physics.add.overlap(this.purpleTownie, this.closedDoorLeft, (obj1, obj2) => {
             if (!this.keyFlag) {
                 // If the player hasn't picked up the key yet, prevent them from accessing the closed door
@@ -169,8 +170,6 @@ class EnchantedForest extends Phaser.Scene {
                 this.scene.start("mysticalCastleScene");
             }
         });
-        
-
 
         this.physics.add.overlap(this.sword, this.weakOrc, () => {
             // Disable physics for each object in the orc group
@@ -196,10 +195,33 @@ class EnchantedForest extends Phaser.Scene {
             loop: true
         });
 
-        // Handle collision between the purple townie and the axe
+        // Create hearts group
+        this.heartsGroup = this.add.group();
+
+        // Add three hearts above the character
+        const heart1 = this.physics.add.sprite(this.activeCharacter.x, this.activeCharacter.y - 20, "fullHeart").setOrigin(0.5, 0.5);
+        const heart2 = this.physics.add.sprite(this.activeCharacter.x, this.activeCharacter.y - 40, "fullHeart").setOrigin(0.5, 0.5);
+        const heart3 = this.physics.add.sprite(this.activeCharacter.x, this.activeCharacter.y - 60, "fullHeart").setOrigin(0.5, 0.5);
+
+        this.heartsGroup.addMultiple([heart1, heart2, heart3]);
+
         this.physics.add.overlap(this.purpleTownie, this.axe, () => {
-            this.scene.restart()
+            // Check if the character is currently vulnerable
+            if (this.isVulnerable) {
+                // Remove a heart when the character is hit by an axe
+                this.removeHeart();
+                // Set the character as not vulnerable and start the cooldown timer
+                this.isVulnerable = false;
+                this.time.delayedCall(1000, () => {
+                    this.isVulnerable = true;
+                });
+                // Restart the scene when all hearts are gone
+                if (this.heartsGroup.getLength() === 0) {
+                    this.scene.restart();
+                }
+            }
         });
+
     }
 
 
@@ -307,6 +329,16 @@ class EnchantedForest extends Phaser.Scene {
 
         }
 
+        // Update heart position relative to the character
+        let offsetX = -2; // Initial offset from the character's x position
+
+        this.heartsGroup.children.iterate(heart => {
+            heart.setPosition(this.activeCharacter.x + offsetX, this.activeCharacter.y - 2); // Adjust y-position to be above the character's head
+            offsetX += 10; // Increment the offset for each heart
+        });
+
+
+
 
         // Update sword position relative to the character
         this.updateSwordPosition();
@@ -323,6 +355,13 @@ class EnchantedForest extends Phaser.Scene {
 
         // Flip the sword sprite based on the movement direction of the townie
         this.sword.setFlipX(this.activeCharacter.flipX);
+    }
+
+    removeHeart() {
+        if (this.heartsGroup.getLength() > 0) {
+            const heartToRemove = this.heartsGroup.getChildren()[this.heartsGroup.getLength() - 1];
+            heartToRemove.destroy();
+        }
     }
 
     tileXtoWorld(tileX) {
