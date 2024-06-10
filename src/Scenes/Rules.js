@@ -1,6 +1,6 @@
-class Start extends Phaser.Scene {
+class Rules extends Phaser.Scene {
     constructor() {
-        super("startScene");
+        super("rulesScene");
         this.my = { sprite: {}, text: {} };
     }
 
@@ -89,11 +89,11 @@ class Start extends Phaser.Scene {
         this.physics.world.enable(this.startGameRight, Phaser.Physics.Arcade.STATIC_BODY);
 
         this.physics.add.overlap(this.activeCharacter, this.learnRulesRight, (obj1, obj2) => {
-            this.scene.start("rulesScene");
+            this.scene.start("enchantedForestScene");
         });
 
         this.physics.add.overlap(this.activeCharacter, this.learnRulesLeft, (obj1, obj2) => {
-            this.scene.start("rulesScene");
+            this.scene.start("enchantedForestScene");
         });
 
         this.physics.add.overlap(this.activeCharacter, this.startGameLeft, (obj1, obj2) => {

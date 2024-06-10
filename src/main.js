@@ -35,7 +35,7 @@ let config = {
     },
     width: 1280,
     height: 800,
-    scene: [Load, MysticalCastle, DarkCave, EnchantedForest, Start]
+    scene: [Load, MysticalCastle, DarkCave, EnchantedForest, Start, Rules]
 }
 
 var cursors;
