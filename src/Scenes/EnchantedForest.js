@@ -14,6 +14,7 @@ class EnchantedForest extends Phaser.Scene {
 
     create() {
         this.keyFlag = false;
+        this.weaponFlag = false;
         this.isVulnerable = true;
 
         // Create a new tilemap which uses 16x16 tiles, and is 40 tiles wide and 25 tiles tall
@@ -98,19 +99,6 @@ class EnchantedForest extends Phaser.Scene {
         this.cursors = this.input.keyboard.createCursorKeys();
 
         // Find the port to next level in the "Objects" layer in Phaser
-        this.leftPort = this.map.createFromObjects("Objects", {
-            name: "leftPort",
-            key: "colored_tilemap_sheet",
-            frame: 23
-        });
-
-        this.rightPort = this.map.createFromObjects("Objects", {
-            name: "rightPort",
-            key: "colored_tilemap_sheet",
-            frame: 22
-        });
-
-        // Find the port to next level in the "Objects" layer in Phaser
         this.closedDoorLeft = this.map.createFromObjects("Objects", {
             name: "closedDoorLeft",
             key: "colored_tilemap_sheet",
@@ -132,27 +120,33 @@ class EnchantedForest extends Phaser.Scene {
         this.key = this.map.createFromObjects("Objects", {
             name: "key",
             key: "colored_tilemap_sheet",
-            frame: 90
+            frame: 88
+        });
+
+        this.chest = this.map.createFromObjects("Objects", {
+            name: "chest",
+            key: "colored_tilemap_sheet",
+            frame: 57
+        });
+
+        this.coin = this.map.createFromObjects("Objects", {
+            name: "coin",
+            key: "colored_tilemap_sheet",
+            frame: 88
         });
 
         // Enable collision handling
-        this.physics.world.enable(this.leftPort, Phaser.Physics.Arcade.STATIC_BODY);
-        this.physics.world.enable(this.rightPort, Phaser.Physics.Arcade.STATIC_BODY);
         this.physics.world.enable(this.key, Phaser.Physics.Arcade.STATIC_BODY);
         this.physics.world.enable(this.closedDoorLeft, Phaser.Physics.Arcade.STATIC_BODY);
         this.physics.world.enable(this.closedDoorRight, Phaser.Physics.Arcade.STATIC_BODY);
         this.physics.world.enable(this.fire, Phaser.Physics.Arcade.STATIC_BODY);
+        this.physics.world.enable(this.coin, Phaser.Physics.Arcade.STATIC_BODY);
+        this.physics.world.enable(this.chest, Phaser.Physics.Arcade.STATIC_BODY);
 
-        // Create a Phaser group out of the array this.coins
+        // Create a Phaser group out of the array this.fire
         this.fireGroup = this.add.group(this.fire);
-
-        this.physics.add.overlap(this.purpleTownie, this.leftPort, (obj1, obj2) => {
-            this.scene.start("mysticalCastle");
-        });
-
-        this.physics.add.overlap(this.purpleTownie, this.rightPort, (obj1, obj2) => {
-            this.scene.start("mysticalCastle");
-        });
+        this.coinGroup = this.add.group(this.coin);
+        this.chestGroup = this.add.group(this.chest);
 
         this.physics.add.overlap(this.purpleTownie, this.closedDoorRight, (obj1, obj2) => {
             if (!this.keyFlag) {
@@ -239,6 +233,18 @@ class EnchantedForest extends Phaser.Scene {
                 if (this.heartsGroup.getLength() === 0) {
                     this.scene.restart();
                 }
+            }
+        });
+
+        this.physics.add.overlap(this.purpleTownie, this.coinGroup, () => {
+           //TODO: implement score system
+        });
+
+        this.physics.add.overlap(this.purpleTownie, this.chestGroup, () => {
+            // Check if the character is currently vulnerable
+            if (!this.weaponFlag) {
+                alert("You have got a new weapon. Press x to hit");
+                this.weaponFlag = true;
             }
         });
 
@@ -337,18 +343,17 @@ class EnchantedForest extends Phaser.Scene {
             this.activeCharacter.body.setVelocityY(100);
         }
 
-        if (this.isXKeyDown) {
-            // Update sword physics only when "X" key is pressed
+        if (this.isXKeyDown && this.weaponFlag) {
+            // Update sword physics only when "X" key is pressed and the weapon flag is true
             this.physics.world.enable(this.sword);
             this.sword.setVisible(true);
             this.updateSwordPosition();
         } else {
-            // Disable sword physics when "X" key is released
+            // Disable sword physics when "X" key is released or weapon flag is false
             if (this.sword.body) { // Check if the sword body exists before disabling
                 this.physics.world.remove(this.sword.body);
                 this.sword.setVisible(false);
             }
-
         }
 
         // Update heart position relative to the character
