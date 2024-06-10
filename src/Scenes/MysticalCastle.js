@@ -1,4 +1,4 @@
-class mysticalCastle extends Phaser.Scene {
+class MysticalCastle extends Phaser.Scene {
     constructor() {
         super("mysticalCastleScene");
     }
