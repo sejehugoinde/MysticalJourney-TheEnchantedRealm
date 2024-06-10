@@ -127,6 +127,30 @@
                  "width":8,
                  "x":455.454545454545,
                  "y":215.909090909091
+                }, 
+                {
+                 "gid":208,
+                 "height":8,
+                 "id":7,
+                 "name":"closedDoorLeft",
+                 "rotation":90,
+                 "type":"",
+                 "visible":true,
+                 "width":8,
+                 "x":551.96875,
+                 "y":288.1875
+                }, 
+                {
+                 "gid":209,
+                 "height":8,
+                 "id":8,
+                 "name":"closedDoorRight",
+                 "rotation":90,
+                 "type":"",
+                 "visible":true,
+                 "width":8,
+                 "x":552.03125,
+                 "y":295.96875
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -135,7 +159,7 @@
          "y":0
         }],
  "nextlayerid":3,
- "nextobjectid":7,
+ "nextobjectid":9,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.10.2",

@@ -13,6 +13,8 @@ class EnchantedForest extends Phaser.Scene {
     }
 
     create() {
+
+        this.keyFlag = false;
         // Create a new tilemap which uses 16x16 tiles, and is 40 tiles wide and 25 tiles tall
         this.map = this.add.tilemap("enchantedForest", this.TILESIZE, this.TILESIZE, this.TILEHEIGHT, this.TILEWIDTH);
         this.physics.world.setBounds(0, 0, 200 * 18, 25 * 18);
@@ -107,6 +109,19 @@ class EnchantedForest extends Phaser.Scene {
             frame: 22
         });
 
+        // Find the port to next level in the "Objects" layer in Phaser
+        this.closedDoorLeft = this.map.createFromObjects("Objects", {
+            name: "closedDoorLeft",
+            key: "colored_tilemap_sheet",
+            frame: 75
+        });
+
+        this.closedDoorRight = this.map.createFromObjects("Objects", {
+            name: "closedDoorRight",
+            key: "colored_tilemap_sheet",
+            frame: 76
+        });
+
         this.fire = this.map.createFromObjects("Objects", {
             name: "fire",
             key: "colored_tilemap_sheet",
@@ -122,6 +137,10 @@ class EnchantedForest extends Phaser.Scene {
         // Enable collision handling
         this.physics.world.enable(this.leftPort, Phaser.Physics.Arcade.STATIC_BODY);
         this.physics.world.enable(this.rightPort, Phaser.Physics.Arcade.STATIC_BODY);
+        this.physics.world.enable(this.key, Phaser.Physics.Arcade.STATIC_BODY);
+        this.physics.world.enable(this.closedDoorLeft, Phaser.Physics.Arcade.STATIC_BODY);
+        this.physics.world.enable(this.closedDoorRight, Phaser.Physics.Arcade.STATIC_BODY);
+
 
         this.physics.add.overlap(this.purpleTownie, this.leftPort, (obj1, obj2) => {
             this.scene.start("mysticalCastle");
@@ -130,6 +149,28 @@ class EnchantedForest extends Phaser.Scene {
         this.physics.add.overlap(this.purpleTownie, this.rightPort, (obj1, obj2) => {
             this.scene.start("mysticalCastle");
         });
+
+        this.physics.add.overlap(this.purpleTownie, this.closedDoorRight, (obj1, obj2) => {
+            if (!this.keyFlag) {
+                // If the player hasn't picked up the key yet, prevent them from accessing the closed door
+                // You can add an alert or any other visual feedback to indicate that the door is locked
+            } else {
+                // If the player has the key, allow them to access the closed door
+                this.scene.start("mysticalCastleScene");
+            }
+        });
+        
+        this.physics.add.overlap(this.purpleTownie, this.closedDoorLeft, (obj1, obj2) => {
+            if (!this.keyFlag) {
+                // If the player hasn't picked up the key yet, prevent them from accessing the closed door
+                // You can add an alert or any other visual feedback to indicate that the door is locked
+            } else {
+                // If the player has the key, allow them to access the closed door
+                this.scene.start("mysticalCastleScene");
+            }
+        });
+        
+
 
         this.physics.add.overlap(this.sword, this.weakOrc, () => {
             // Disable physics for each object in the orc group
@@ -222,6 +263,13 @@ class EnchantedForest extends Phaser.Scene {
 
         // Start the first tween
         this.tweenAxeToRight.play();
+
+        // Handle collision detection with coins
+        this.physics.add.overlap(this.activeCharacter, this.key, (obj1, obj2) => {
+            obj2.destroy();
+            alert("You got a key!");
+            this.keyFlag = true;
+        });
     }
 
     update() {
@@ -234,15 +282,15 @@ class EnchantedForest extends Phaser.Scene {
 
         // Check for arrow key inputs and move character accordingly
         if (this.cursors.left.isDown) {
-            this.activeCharacter.body.setVelocityX(-20);
+            this.activeCharacter.body.setVelocityX(-100);
             this.activeCharacter.flipX = true; // Flip the sprite to face left
         } else if (this.cursors.right.isDown) {
-            this.activeCharacter.body.setVelocityX(20);
+            this.activeCharacter.body.setVelocityX(100);
             this.activeCharacter.flipX = false; // Flip the sprite to face right
         } else if (this.cursors.up.isDown) {
-            this.activeCharacter.body.setVelocityY(-20);
+            this.activeCharacter.body.setVelocityY(-100);
         } else if (this.cursors.down.isDown) {
-            this.activeCharacter.body.setVelocityY(20);
+            this.activeCharacter.body.setVelocityY(100);
         }
 
         if (this.isXKeyDown) {
