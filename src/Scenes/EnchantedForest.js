@@ -141,7 +141,10 @@ class EnchantedForest extends Phaser.Scene {
         this.physics.world.enable(this.key, Phaser.Physics.Arcade.STATIC_BODY);
         this.physics.world.enable(this.closedDoorLeft, Phaser.Physics.Arcade.STATIC_BODY);
         this.physics.world.enable(this.closedDoorRight, Phaser.Physics.Arcade.STATIC_BODY);
+        this.physics.world.enable(this.fire, Phaser.Physics.Arcade.STATIC_BODY);
 
+        // Create a Phaser group out of the array this.coins
+        this.fireGroup = this.add.group(this.fire);
 
         this.physics.add.overlap(this.purpleTownie, this.leftPort, (obj1, obj2) => {
             this.scene.start("mysticalCastle");
@@ -206,6 +209,23 @@ class EnchantedForest extends Phaser.Scene {
         this.heartsGroup.addMultiple([heart1, heart2, heart3]);
 
         this.physics.add.overlap(this.purpleTownie, this.axe, () => {
+            // Check if the character is currently vulnerable
+            if (this.isVulnerable) {
+                // Remove a heart when the character is hit by an axe
+                this.removeHeart();
+                // Set the character as not vulnerable and start the cooldown timer
+                this.isVulnerable = false;
+                this.time.delayedCall(1000, () => {
+                    this.isVulnerable = true;
+                });
+                // Restart the scene when all hearts are gone
+                if (this.heartsGroup.getLength() === 0) {
+                    this.scene.restart();
+                }
+            }
+        });
+
+        this.physics.add.overlap(this.purpleTownie, this.fireGroup, () => {
             // Check if the character is currently vulnerable
             if (this.isVulnerable) {
                 // Remove a heart when the character is hit by an axe
