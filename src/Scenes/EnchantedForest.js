@@ -222,6 +222,8 @@ class EnchantedForest extends Phaser.Scene {
             }
         });
 
+        this.rKey = this.input.keyboard.addKey('R');
+
     }
 
 
@@ -337,8 +339,9 @@ class EnchantedForest extends Phaser.Scene {
             offsetX += 10; // Increment the offset for each heart
         });
 
-
-
+        if (Phaser.Input.Keyboard.JustDown(this.rKey)) {
+            this.scene.restart();
+        }
 
         // Update sword position relative to the character
         this.updateSwordPosition();
