@@ -33,8 +33,8 @@ let config = {
             }
         }
     },
-    width: 1280,
-    height: 800,
+    width: 400,
+    height: 400,
     scene: [Load, MysticalCastle, DarkCave, EnchantedForest, Start, Rules, End]
 }
 

@@ -14,12 +14,15 @@ class EnchantedForest extends Phaser.Scene {
 
     create() {
         this.keyFlag = false;
-        this.weaponFlag = true;
+        this.weaponFlag = false;
         this.isVulnerable = true;
         this.isXKeyDown = false;
         this.lives = 3;
         this.enemySpeed = 5; // Reduced speed of the orc
 
+        // Add a cooldown timer for portal transitions
+        this.portalCooldown = false;
+        this.portalCooldownDuration = 1500; // 1.5 seconds
 
         // Create a new tilemap which uses 16x16 tiles, and is 40 tiles wide and 25 tiles tall
         this.map = this.add.tilemap("enchantedForest", this.TILESIZE, this.TILESIZE, this.TILEHEIGHT, this.TILEWIDTH);
@@ -33,8 +36,8 @@ class EnchantedForest extends Phaser.Scene {
         this.groundLayer.setCollisionByProperty({ collides: true });
 
         // Create townsfolk sprite
-        this.player = this.add.sprite(this.tileXtoWorld(1), this.tileYtoWorld(1), "playerEnchantedForest").setOrigin(0, 0);
-        
+        this.player = this.add.sprite(this.tileXtoWorld(5), this.tileYtoWorld(15), "playerEnchantedForest").setOrigin(0, 0);
+
         // Set the depth of the townsfolk sprite
         this.player.setDepth(1);
 
@@ -75,6 +78,19 @@ class EnchantedForest extends Phaser.Scene {
             frame: 88
         });
 
+        this.portal1 = this.map.createFromObjects("Objects", {
+            name: "portal1",
+            key: "colored_tilemap_sheet",
+            frame: 129
+        });
+
+
+        this.portal2 = this.map.createFromObjects("Objects", {
+            name: "portal2",
+            key: "colored_tilemap_sheet",
+            frame: 129
+        });
+
         // Create groups
         this.orcGroup = this.add.group();
         this.fireGroup = this.add.group(this.fire);
@@ -95,7 +111,7 @@ class EnchantedForest extends Phaser.Scene {
 
         // Create orc sprite and add it to the orc group
         this.weakOrc = this.physics.add.sprite(this.tileXtoWorld(25), this.tileYtoWorld(15), "weakOrch").setOrigin(0, 0);
-        this.weakOrc.setScale(2);
+        this.weakOrc.setScale(1.5);
         this.orcGroup.add(this.weakOrc);
 
         // Create snake sprite
@@ -200,7 +216,7 @@ class EnchantedForest extends Phaser.Scene {
         // Camera settings
         this.cameras.main.setBounds(0, 0, this.map.widthInPixels, this.map.heightInPixels);
         this.cameras.main.setSize(config.width, config.height); // Set camera size to match the game config
-        this.cameras.main.setZoom(8);
+        this.cameras.main.setZoom(2);
 
         // Add camera follow to the sprite
         this.cameras.main.startFollow(this.player, true, 0.25, 0.25); // (target, [,roundPixels][,lerpX][,lerpY])
@@ -216,6 +232,9 @@ class EnchantedForest extends Phaser.Scene {
         this.physics.world.enable(this.fire, Phaser.Physics.Arcade.STATIC_BODY);
         this.physics.world.enable(this.coin, Phaser.Physics.Arcade.STATIC_BODY);
         this.physics.world.enable(this.chest, Phaser.Physics.Arcade.STATIC_BODY);
+        this.physics.world.enable(this.portal1, Phaser.Physics.Arcade.STATIC_BODY);
+        this.physics.world.enable(this.portal2, Phaser.Physics.Arcade.STATIC_BODY);
+
 
         this.physics.add.overlap(this.player, this.closedDoorRight, (obj1, obj2) => {
             if (!this.keyFlag) {
@@ -247,7 +266,7 @@ class EnchantedForest extends Phaser.Scene {
             this.orcGroup.setVisible(false);
         });
 
-        this.physics.add.overlap(this.sword, this.snakeGroup, this.killSnake, null, this);  
+        this.physics.add.overlap(this.sword, this.snakeGroup, this.killSnake, null, this);
 
         this.physics.add.overlap(this.player, this.axe, () => {
             // Check if the character is currently vulnerable
@@ -298,6 +317,22 @@ class EnchantedForest extends Phaser.Scene {
         // Check for collision between player character and snakes
         this.physics.add.overlap(this.player, this.snakeGroup, this.playerHitBySnake, null, this);
 
+        // Add overlap detection between player and portals
+        this.physics.add.overlap(this.player, this.portal1, () => {
+            if (!this.portalCooldown) {
+                this.player.setPosition(this.tileXtoWorld(4), this.tileYtoWorld(14));
+                this.setPortalCooldown();
+            }
+        });
+
+        this.physics.add.overlap(this.player, this.portal2, () => {
+            if (!this.portalCooldown) {
+                this.player.setPosition(this.tileXtoWorld(23.5), this.tileYtoWorld(12));
+                this.setPortalCooldown();
+            }
+        });
+
+
         this.rKey = this.input.keyboard.addKey('R');
 
     }
@@ -315,7 +350,7 @@ class EnchantedForest extends Phaser.Scene {
             this.snakes.splice(index, 1);
         }
     }
-    
+
 
     setRandomOrcMovement() {
         // Generate a random direction and speed
@@ -391,20 +426,20 @@ class EnchantedForest extends Phaser.Scene {
         this.player.body.setVelocity(0);
 
         if (this.cursors.space.isDown) {
-            this.player.body.setVelocityY(-80);
+            this.player.body.setVelocityY(-50);
         }
 
         // Check for arrow key inputs and move character accordingly
         if (this.cursors.left.isDown) {
-            this.player.body.setVelocityX(-50);
+            this.player.body.setVelocityX(-40);
             this.player.flipX = true; // Flip the sprite to face left
         } else if (this.cursors.right.isDown) {
-            this.player.body.setVelocityX(50);
+            this.player.body.setVelocityX(40);
             this.player.flipX = false; // Flip the sprite to face right
         } else if (this.cursors.up.isDown) {
-            this.player.body.setVelocityY(-50);
+            this.player.body.setVelocityY(-40);
         } else if (this.cursors.down.isDown) {
-            this.player.body.setVelocityY(50);
+            this.player.body.setVelocityY(40);
         }
 
         if (this.isXKeyDown && this.weaponFlag) {
@@ -435,6 +470,13 @@ class EnchantedForest extends Phaser.Scene {
         // Update sword position relative to the character
         this.updateSwordPosition();
 
+        if (this.portalCooldown) {
+            this.portalCooldownTimer -= this.time.deltaTime;
+            if (this.portalCooldownTimer <= 0) {
+                this.portalCooldown = false;
+            }
+        }
+
 
     }
 
@@ -464,19 +506,19 @@ class EnchantedForest extends Phaser.Scene {
         if (this.isVulnerable) {
             // Remove a heart when the character is hit by a snake
             this.removeHeart();
-    
+
             // Set the character as not vulnerable and start the cooldown timer
             this.isVulnerable = false;
             this.time.delayedCall(1000, () => {
                 this.isVulnerable = true;
             });
-    
+
             // Restart the scene when all hearts are gone
             if (this.heartsGroup.getLength() === 0) {
                 this.scene.restart();
             }
         }
-    }    
+    }
 
     setRandomSnakeMovement() {
         // Iterate through each snake and set random movement
@@ -489,16 +531,26 @@ class EnchantedForest extends Phaser.Scene {
                 { x: 0, y: -1 } // up
             ];
             const randomDirection = Phaser.Math.RND.pick(directions);
-    
+
             // Set velocity for each snake based on the orc speed
             const velocityX = randomDirection.x * this.enemySpeed;
             const velocityY = randomDirection.y * this.enemySpeed;
             snake.setVelocity(velocityX, velocityY);
         });
-    
+
         // Set a timer to change direction for each snake after a random interval
         const randomInterval = Phaser.Math.Between(2000, 4000); // Increase the interval range for slower changes
         this.time.delayedCall(randomInterval, this.setRandomSnakeMovement, [], this);
+    }
+
+    setPortalCooldown() {
+        this.portalCooldown = true;
+        this.portalCooldownTimer = this.portalCooldownDuration;
+    
+        // Reset the portal cooldown after the specified duration
+        this.time.delayedCall(this.portalCooldownDuration, () => {
+            this.portalCooldown = false;
+        });
     }
     
 
