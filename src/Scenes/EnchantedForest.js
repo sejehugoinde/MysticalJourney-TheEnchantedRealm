@@ -17,6 +17,7 @@ class EnchantedForest extends Phaser.Scene {
         this.weaponFlag = false;
         this.isVulnerable = true;
         this.isXKeyDown = false;
+        this.lives = 3;
 
         // Create a new tilemap which uses 16x16 tiles, and is 40 tiles wide and 25 tiles tall
         this.map = this.add.tilemap("enchantedForest", this.TILESIZE, this.TILESIZE, this.TILEHEIGHT, this.TILEWIDTH);
@@ -27,8 +28,6 @@ class EnchantedForest extends Phaser.Scene {
 
         // Create the layers
         this.groundLayer = this.map.createLayer("Ground-n-Walkways", this.tileset, 0, 0);
-        this.treesLayer = this.map.createLayer("Trees-n-Bushes", this.tileset, 0, 0);
-        this.housesLayer = this.map.createLayer("Houses-n-Fences", this.tileset, 0, 0);
 
         // Create townsfolk sprite
         this.purpleTownie = this.add.sprite(this.tileXtoWorld(25), this.tileYtoWorld(5), "purple").setOrigin(0, 0);
@@ -145,7 +144,7 @@ class EnchantedForest extends Phaser.Scene {
         // Camera settings
         this.cameras.main.setBounds(0, 0, this.map.widthInPixels, this.map.heightInPixels);
         this.cameras.main.setSize(config.width, config.height); // Set camera size to match the game config
-        this.cameras.main.setZoom(this.SCALE);
+        this.cameras.main.setZoom(3);
 
         // Add camera follow to the sprite
         this.cameras.main.startFollow(this.purpleTownie, true, 0.25, 0.25); // (target, [,roundPixels][,lerpX][,lerpY])
@@ -168,7 +167,7 @@ class EnchantedForest extends Phaser.Scene {
                 // You can add an alert or any other visual feedback to indicate that the door is locked
             } else {
                 // If the player has the key, allow them to access the closed door
-                this.scene.start("mysticalCastleScene");
+                this.scene.start("darkCaveScene", { lives: this.lives });
             }
         });
 
@@ -178,7 +177,7 @@ class EnchantedForest extends Phaser.Scene {
                 // You can add an alert or any other visual feedback to indicate that the door is locked
             } else {
                 // If the player has the key, allow them to access the closed door
-                this.scene.start("mysticalCastleScene");
+                this.scene.start("darkCaveScene", { lives: this.lives });
             }
         });
 
@@ -379,6 +378,7 @@ class EnchantedForest extends Phaser.Scene {
         if (this.heartsGroup.getLength() > 0) {
             const heartToRemove = this.heartsGroup.getChildren()[this.heartsGroup.getLength() - 1];
             heartToRemove.destroy();
+            this.lives--;
         }
     }
 

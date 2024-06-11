@@ -13,6 +13,12 @@ class Load extends Phaser.Scene {
         this.load.image("axe", "weakOrcAttack.png");
         this.load.image("sword", "weakOrcAttack.png");
         this.load.image("fullHeart", "fullHeart.png");
+        this.load.image("giant", "giant.png");
+        this.load.image("giantSword", "giantSword.png");
+        this.load.image("speakingBubble", "message_square.png");
+        this.load.image("fullHeartMysticalCastle", "fullHeartMysticalCastle.png");
+
+
 
         // Load tilemap images with unique keys
         this.load.image("colored_tilemap_tiles", "colored_tilemap_packed.png");
@@ -34,13 +40,13 @@ class Load extends Phaser.Scene {
         this.load.tilemapTiledJSON("enchantedForest", "enchantedForest.tmj");
         this.load.tilemapTiledJSON("start", "start.tmj");
         this.load.tilemapTiledJSON("rules", "rules.tmj");
-
+        this.load.tilemapTiledJSON("end", "end.tmj");
     }   
 
     create() {
         
          // ...and pass to the next Scene
-         this.scene.start("startScene");
+         this.scene.start("enchantedForestScene");
     }
 
     // Never get here since a new scene is started in create()
