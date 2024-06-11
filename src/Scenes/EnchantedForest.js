@@ -11,7 +11,7 @@ class EnchantedForest extends Phaser.Scene {
         this.TILEWIDTH = 40;
         this.TILEHEIGHT = 25;
     }
-
+   
     create() {
         this.keyFlag = false;
         this.weaponFlag = false;
@@ -189,7 +189,6 @@ class EnchantedForest extends Phaser.Scene {
 
         // Enable collision handling
         this.physics.add.collider(this.player, this.groundLayer, () => { });
-        this.physics.add.collider(this.axe, this.groundLayer);
         this.physics.add.collider(this.axe, this.groundLayer);
 
         // Create sword sprite using a frame from the spritesheet
@@ -413,7 +412,7 @@ class EnchantedForest extends Phaser.Scene {
         // Start the first tween
         this.tweenAxeToRight.play();
 
-        // Handle collision detection with coins
+        // Handle collision detection with key
         this.physics.add.overlap(this.player, this.key, (obj1, obj2) => {
             obj2.destroy();
             alert("You got a key!");

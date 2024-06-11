@@ -5,20 +5,30 @@ class Load extends Phaser.Scene {
 
     preload() {
         this.load.setPath("./assets/");
+        
+        // Load png's to darkCaveScene
+        this.load.image("darkCavePlayer", "darkCavePlayer.png");
+        this.load.image("key", "key.png");
+        this.load.image("giantSword", "giantSword.png");
+        this.load.image("giant", "giant.png");
+        this.load.image("swordDarkCave", "swordDarkCave.png");
+        this.load.image("openDoor", "openDoor.png");
 
-        // Load townsfolk
-        this.load.image("purple", "purple_townie.png");
-        this.load.image("blue", "blue_townie.png");
+        // Load png's to mysticalCastleScene
+        this.load.image("fullHeartMysticalCastle", "fullHeartMysticalCastle.png");
+        this.load.image("speakingBubble", "message_square.png");
+
+        // Load png's to enchantedForestScene
         this.load.image("weakOrch", "weak_orch.png");
         this.load.image("axe", "weakOrcAttack.png");
         this.load.image("sword", "weakOrcAttack.png");
         this.load.image("fullHeart", "fullHeart.png");
-        this.load.image("giant", "giant.png");
-        this.load.image("giantSword", "giantSword.png");
-        this.load.image("speakingBubble", "message_square.png");
-        this.load.image("fullHeartMysticalCastle", "fullHeartMysticalCastle.png");
         this.load.image("snake", "snake.png");
         this.load.image("playerEnchantedForest", "playerEnchantedForest.png");
+
+        // TODO: clean-up
+        this.load.image("purple", "purple_townie.png");
+        this.load.image("blue", "blue_townie.png");
 
         // Load tilemap images with unique keys
         this.load.image("colored_tilemap_tiles", "colored_tilemap_packed.png");
@@ -46,7 +56,7 @@ class Load extends Phaser.Scene {
     create() {
         
          // ...and pass to the next Scene
-         this.scene.start("enchantedForestScene");
+         this.scene.start("darkCaveScene");
     }
 
     // Never get here since a new scene is started in create()

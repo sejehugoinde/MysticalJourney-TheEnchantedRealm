@@ -14,71 +14,182 @@ class DarkCave extends Phaser.Scene {
     }
 
     create(data) {
+        // Conditionals
+        this.keyFlag = true;
+        this.isSwordHit = false;
+        this.weaponFlag = true;
+        this.isVulnerable = true;
+        this.isVulnerableGiant = true;
+        this.isXKeyDown = false;
+        this.lives = 3;
+        this.enemySpeed = 5;
+        this.giantLives = 3;
+
         this.lives = data.lives;
+        if (this.lives == null) {
+            this.lives = 2
+        }
+
+        // Setup
         // Create a new tilemap which uses 16x16 tiles, and is 40 tiles wide and 25 tiles tall
         this.map = this.add.tilemap("darkCave", this.TILESIZE, this.TILESIZE, this.TILEHEIGHT, this.TILEWIDTH);
         this.physics.world.setBounds(0, 0, 200 * 18, 25 * 18);
-    
+
         // Add a tileset to the map
         this.tileset = this.map.addTilesetImage("kenney-tiny-town", "tilemap_tiles");
-    
-        // Create townsfolk sprite
-        this.purpleTownie = this.add.sprite(this.tileXtoWorld(25), this.tileYtoWorld(5), "purple").setOrigin(0, 0);
-    
-        // Set the depth of the townsfolk sprite
-        this.purpleTownie.setDepth(1);
-    
-        // Find the port to next level in the "Objects" layer in Phaser
+
+        // Create the layers
+        this.groundLayer = this.map.createLayer("Ground-n-Walkways", this.tileset, 0, 0);
+        this.railwayLayer = this.map.createLayer("Railway", this.tileset, 0, 0);
+        this.castleLayer = this.map.createLayer("Castle", this.tileset, 0, 0);
+        this.graveyardLayer = this.map.createLayer("Graveyard", this.tileset, 0, 0);
+
+        this.groundLayer.setCollisionByProperty({ collides: true });
+        this.railwayLayer.setCollisionByProperty({ collides: true });
+        this.castleLayer.setCollisionByProperty({ collides: true });
+        this.graveyardLayer.setCollisionByProperty({ collides: true });
+
+        // Enemy related
+
+        // Player related
+        this.player = this.add.sprite(this.tileXtoWorld(30), this.tileYtoWorld(25), "darkCavePlayer").setOrigin(0, 0);
+        this.player.setScale(1);
+        this.player.setDepth(1);
+
+        // Obejcts
         this.leftPort = this.map.createFromObjects("Objects", {
             name: "leftPort",
             key: "tilemap_sheet",
             frame: 23
         })
-    
+
         this.rightPort = this.map.createFromObjects("Objects", {
             name: "rightPort",
             key: "tilemap_sheet",
             frame: 22
         })
-    
+
+        this.lockedDoor = this.map.createFromObjects("Objects", {
+            name: "lockedDoor",
+            key: "tilemap_sheet",
+            frame: 45
+        })
+
+        this.spikes = this.map.createFromObjects("Objects", {
+            name: "spikes",
+            key: "tilemap_sheet",
+            frame: 41
+        })
+
+        this.cartWheel = this.map.createFromObjects("Objects", {
+            name: "cartWheel",
+            key: "tilemap_sheet",
+            frame: 54
+        })
+
+        this.coin = this.map.createFromObjects("Objects", {
+            name: "coin",
+            key: "tilemap_sheet",
+            frame: 101
+        })
+
+        this.healthPotion = this.map.createFromObjects("Objects", {
+            name: "healthPotion",
+            key: "tilemap_sheet",
+            frame: 115
+        })
+
+        this.openChest = this.map.createFromObjects("Objects", {
+            name: "openChest",
+            key: "tilemap_sheet",
+            frame: 90
+        })
+
+
+        this.closedChest = this.map.createFromObjects("Objects", {
+            name: "closedChest",
+            key: "tilemap_sheet",
+            frame: 89
+        })
+
         // Enable collision handling
         this.physics.world.enable(this.leftPort, Phaser.Physics.Arcade.STATIC_BODY);
         this.physics.world.enable(this.rightPort, Phaser.Physics.Arcade.STATIC_BODY);
-    
-        this.physics.add.overlap(this.purpleTownie, this.leftPort, (obj1, obj2) => {
+        this.physics.world.enable(this.spikes, Phaser.Physics.Arcade.STATIC_BODY);
+        this.physics.world.enable(this.healthPotion, Phaser.Physics.Arcade.STATIC_BODY);
+        this.physics.world.enable(this.openChest, Phaser.Physics.Arcade.STATIC_BODY);
+        this.physics.world.enable(this.closedChest, Phaser.Physics.Arcade.STATIC_BODY);
+        this.physics.world.enable(this.cartWheel, Phaser.Physics.Arcade.STATIC_BODY);
+        this.physics.world.enable(this.coin, Phaser.Physics.Arcade.STATIC_BODY);
+        this.physics.world.enable(this.lockedDoor, Phaser.Physics.Arcade.STATIC_BODY);
+
+        this.physics.add.overlap(this.player, this.leftPort, (obj1, obj2) => {
             this.scene.start("mysticalCastleScene", { lives: this.lives });
-            
+
         });
-    
-        this.physics.add.overlap(this.purpleTownie, this.rightPort, (obj1, obj2) => {
+
+        this.physics.add.overlap(this.player, this.rightPort, (obj1, obj2) => {
             this.scene.start("mysticalCastleScene", { lives: this.lives });
         });
-    
+
+        // Add collision detection for the closed door
+        this.physics.add.overlap(this.player, this.lockedDoor, (player, door) => {
+            if (!this.keyFlag) {
+                // Player doesn't have the key, provide feedback or take appropriate action
+            } else {
+                // Player has the key, open the door
+                door.destroy(); // Remove the closed door
+                this.openDoor = this.physics.add.sprite(door.x, door.y, "openDoor").setOrigin(0.5, 0.5);
+                this.physics.world.enable(this.openDoor, Phaser.Physics.Arcade.STATIC_BODY);
+
+                // Disable collision with the castle layer for the open door
+                this.castleLayer.forEachTile(tile => {
+                    if (tile.properties.collides) {
+                        tile.setCollision(false);
+                    }
+                });
+            }
+        });
+
+
         // Create groups
         this.giantGroup = this.add.group();
         this.heartsGroup = this.add.group();
-    
+        this.heartsGiantGroup = this.add.group();
+        this.coinGroup = this.add.group(this.coin);
+        this.openChestGroup = this.add.group(this.openChest);
+        this.closedChestGroup = this.add.group(this.closedChest);
+        this.spikeGroup = this.add.group(this.spikes);
+
+
         // Add three hearts above the character
         for (let i = 0; i < this.lives; i++) {
-            const heart = this.physics.add.sprite(20 + i * 20, 20, "fullHeart").setOrigin(0.5, 0.5);
+            const heart = this.add.sprite(20 + i * 20, 20, "fullHeartMysticalCastle").setOrigin(0.5, 0.5);
             this.heartsGroup.add(heart);
         }
-    
+
         // Create orc sprite and add it to the orc group
         this.giant = this.physics.add.sprite(this.tileXtoWorld(25), this.tileYtoWorld(15), "giant").setOrigin(0, 0);
         this.giant.setScale(2);
         this.giantGroup.add(this.giant);
-    
+
+        // Add three hearts above the giant
+        for (let i = 0; i < 3; i++) {
+            const heart = this.add.sprite(20 + i * 20, 20, "fullHeartMysticalCastle").setOrigin(0.5, 0.5);
+            this.heartsGiantGroup.add(heart);
+        }
+
         // Create the giantSword as a physics sprite and add it to the orc group
         this.giantSword = this.physics.add.sprite(this.giant.x, this.giant.y, "giantSword").setOrigin(0.5, 0.5);
         this.giantSword.setCollideWorldBounds(true);
+        this.giantSword.setScale(1.5);
         this.giantGroup.add(this.giantSword);
-    
+
         // Set up random movement for the weak orc
         this.orcSpeed = 5; // Reduced speed of the orc
         this.setRandomOrcMovement();
         this.setRandomgiantSwordMovement();
-    
+
         // Add this to the create method to repeat giantSword throwing every 3 seconds
         this.time.addEvent({
             delay: 3000, // 3 seconds
@@ -86,72 +197,54 @@ class DarkCave extends Phaser.Scene {
             callbackScope: this,
             loop: true
         });
-    
+
         // Set the depth of the orc group to be lower than the townsfolk sprite
         this.giantGroup.setDepth(0);
-    
+
         // Enable physics for the townsfolk sprite without debug visuals
-        this.physics.add.existing(this.purpleTownie);
-        this.purpleTownie.body.setCollideWorldBounds(true);
-    
+        this.physics.add.existing(this.player);
+        this.player.body.setCollideWorldBounds(true);
+
         // Enable collision handling
-        this.physics.add.collider(this.purpleTownie, this.groundLayer, () => { });
+        this.physics.add.collider(this.player, this.groundLayer, () => { });
+        this.physics.add.collider(this.player, this.railwayLayer);
+        this.physics.add.collider(this.player, this.castleLayer);
+        this.physics.add.collider(this.player, this.graveyardLayer);
         this.physics.add.collider(this.giantSword, this.groundLayer);
-        this.physics.add.collider(this.giantSword, this.groundLayer);
-    
+
         // Create sword sprite using a frame from the spritesheet
-        this.sword = this.add.sprite(0, 0, "sword").setOrigin(0.5, 0.5);
-        this.physics.add.existing(this.sword);
-        this.sword.body.setCollideWorldBounds(true);
-    
+        this.sword = this.physics.add.sprite(0, 0, "swordDarkCave").setOrigin(0.5, 0.5);
+        this.sword.setCollideWorldBounds(true);
+        this.sword.setScale(1);
+
         // Listen for "X" key press event
         this.input.keyboard.on('keydown-X', () => {
             this.isXKeyDown = true;
         });
-    
+
         // Listen for "X" key release event
         this.input.keyboard.on('keyup-X', () => {
             this.isXKeyDown = false;
         });
-    
+
         // Listen for "X" key press event
         this.input.keyboard.on('keydown-X', () => {
             this.sword.setVisible(true); // Show the sword when "X" key is pressed
         });
-    
+
         // Camera settings
         this.cameras.main.setBounds(0, 0, this.map.widthInPixels, this.map.heightInPixels);
         this.cameras.main.setSize(config.width, config.height); // Set camera size to match the game config
         this.cameras.main.setZoom(this.SCALE);
-    
+
         // Add camera follow to the sprite
-        this.cameras.main.startFollow(this.purpleTownie, true, 0.25, 0.25); // (target, [,roundPixels][,lerpX][,lerpY])
+        this.cameras.main.startFollow(this.player, true, 0.25, 0.25); // (target, [,roundPixels][,lerpX][,lerpY])
         this.cameras.main.setDeadzone(50, 50);
-    
+
         // Add key handlers for arrow keys
         this.cursors = this.input.keyboard.createCursorKeys();
-    
-        // Only enable physics for objects that are defined
-        if (this.key) {
-            this.physics.world.enable(this.key, Phaser.Physics.Arcade.STATIC_BODY);
-        }
-        if (this.closedDoorLeft) {
-            this.physics.world.enable(this.closedDoorLeft, Phaser.Physics.Arcade.STATIC_BODY);
-        }
-        if (this.closedDoorRight) {
-            this.physics.world.enable(this.closedDoorRight, Phaser.Physics.Arcade.STATIC_BODY);
-        }
-        if (this.fire) {
-            this.physics.world.enable(this.fire, Phaser.Physics.Arcade.STATIC_BODY);
-        }
-        if (this.coin) {
-            this.physics.world.enable(this.coin, Phaser.Physics.Arcade.STATIC_BODY);
-        }
-        if (this.chest) {
-            this.physics.world.enable(this.chest, Phaser.Physics.Arcade.STATIC_BODY);
-        }
-    
-        this.physics.add.overlap(this.purpleTownie, this.closedDoorRight, (obj1, obj2) => {
+
+        this.physics.add.overlap(this.player, this.closedDoorRight, (obj1, obj2) => {
             if (!this.keyFlag) {
                 // If the player hasn't picked up the key yet, prevent them from accessing the closed door
                 // You can add an alert or any other visual feedback to indicate that the door is locked
@@ -160,8 +253,8 @@ class DarkCave extends Phaser.Scene {
                 this.scene.start("mysticalCastleScene", { lives: this.lives });
             }
         });
-    
-        this.physics.add.overlap(this.purpleTownie, this.closedDoorLeft, (obj1, obj2) => {
+
+        this.physics.add.overlap(this.player, this.closedDoorLeft, (obj1, obj2) => {
             if (!this.keyFlag) {
                 // If the player hasn't picked up the key yet, prevent them from accessing the closed door
                 // You can add an alert or any other visual feedback to indicate that the door is locked
@@ -170,18 +263,41 @@ class DarkCave extends Phaser.Scene {
                 this.scene.start("mysticalCastleScene", { lives: this.lives });
             }
         });
-    
+
         this.physics.add.overlap(this.sword, this.giant, () => {
-            // Disable physics for each object in the orc group
-            this.giantGroup.children.iterate(child => {
-                this.physics.world.disableBody(child.body);
-            });
-    
-            // Make the orc group invisible
-            this.giantGroup.setVisible(false);
+            if (!this.isSwordHit) {
+                // Check if the giant is currently vulnerable
+                if (this.isVulnerableGiant) {
+                    // Remove a heart when the giant is hit by the player's sword
+                    this.removeGiantHeart();
+                    // Set the giant as not vulnerable and start the cooldown timer
+                    this.isVulnerableGiant = false;
+                    this.time.delayedCall(1000, () => {
+                        this.isVulnerableGiant = true;
+                    });
+                    // Restart the scene when all giant's hearts are gone
+                    if (this.heartsGiantGroup.getLength() === 0) {
+                        // Disable physics for each object in the giant group
+                        this.giantGroup.children.iterate(child => {
+                            this.physics.world.disableBody(child.body);
+                        });
+
+                        // Make the giant group invisible
+                        this.giantGroup.setVisible(false);
+
+                        // Spawn a key when the giant is defeated
+                        this.key = this.physics.add.sprite(this.giant.x, this.giant.y, "key").setOrigin(0.5, 0.5);
+                        // Enable collision handling for the key
+                        this.physics.world.enable(this.key, Phaser.Physics.Arcade.STATIC_BODY);
+                    }
+                }
+                this.isSwordHit = true; // Set the flag to true to indicate that the sword has hit the giant
+            }
         });
-    
-        this.physics.add.overlap(this.purpleTownie, this.giantSword, () => {
+
+
+
+        this.physics.add.overlap(this.player, this.giantSword, () => {
             // Check if the character is currently vulnerable
             if (this.isVulnerable) {
                 // Remove a heart when the character is hit by an giantSword
@@ -197,53 +313,38 @@ class DarkCave extends Phaser.Scene {
                 }
             }
         });
-    
-        this.physics.add.overlap(this.purpleTownie, this.fireGroup, (obj1, obj2) => {
-            // Check if the character is currently vulnerable
-            if (this.isVulnerable) {
-                // Remove a heart when the character touches fire
-                this.removeHeart();
-                // Set the character as not vulnerable and start the cooldown timer
-                this.isVulnerable = false;
-                this.time.delayedCall(1000, () => {
-                    this.isVulnerable = true;
-                });
-                // Restart the scene when all hearts are gone
-                if (this.heartsGroup.getLength() === 0) {
-                    this.scene.restart();
-                }
+
+        this.physics.add.overlap(this.player, this.spikeGroup, this.playerHitBySpikes, null, this);
+
+
+        this.physics.add.overlap(this.player, this.openChestGroup, (obj1, obj2) => {
+            obj2.destroy();
+        });
+
+        this.physics.add.overlap(this.player, this.closedChestGroup, (obj1, obj2) => {
+            obj2.destroy();
+        });
+
+        // Handle collision detection with coins
+        this.physics.add.overlap(this.player, this.coinGroup, (obj1, obj2) => {
+            //this.myScore += 1;
+            //my.text.score.setText("Score: " + this.myScore);
+            obj2.destroy(); // remove coin on overlap
+        });
+
+        this.physics.add.overlap(this.player, this.healthPotion, (player, potion) => {
+            // Check if the player has less than 3 lives
+            if (this.lives < 3) {
+                // Increase the player's lives by 1
+                this.lives++;
+                // Remove the health potion
+                potion.destroy();
+                // Update the hearts display
+                this.updateHeartsDisplay(); // Call the function to update hearts display
             }
         });
-    
-        // Listen for sword and fire collisions
-        this.physics.add.overlap(this.sword, this.fireGroup, (obj1, obj2) => {
-            // Remove the sword and fire when they overlap
-            obj1.destroy();
-            obj2.destroy();
-        });
-    
-        // Add overlap detection for character and coins
-        this.physics.add.overlap(this.purpleTownie, this.coinGroup, (obj1, obj2) => {
-            // Remove the coin when the character collects it
-            obj2.destroy();
-        });
-    
-        // Add overlap detection for character and chests
-        this.physics.add.overlap(this.purpleTownie, this.chestGroup, (obj1, obj2) => {
-            // Open the chest and reveal its contents (if any)
-            // Add logic for handling chest contents here
-            // For now, we'll just remove the chest when it's opened
-            obj2.destroy();
-        });
-    
-        this.physics.add.overlap(this.purpleTownie, this.coin, (obj1, obj2) => {
-            this.coinFlag = true;
-            // Make the coin invisible
-            this.coin.setVisible(false);
-            // Remove the coin from the physics world
-            this.coin.body.destroy();
-        });
-    }    
+
+    }
 
     setRandomOrcMovement() {
         // Generate a random direction and speed
@@ -307,35 +408,34 @@ class DarkCave extends Phaser.Scene {
         this.tweengiantSwordToRight.play();
 
         // Handle collision detection with coins
-        this.physics.add.overlap(this.purpleTownie, this.key, (obj1, obj2) => {
+        this.physics.add.overlap(this.player, this.key, (obj1, obj2) => {
             obj2.destroy();
-            alert("You got a key!");
+            alert("You got a knife to pick a door open!");
             this.keyFlag = true;
         });
 
         this.rKey = this.input.keyboard.addKey('R');
-
     }
 
     update() {
         // Reset velocity
-        this.purpleTownie.body.setVelocity(0);
+        this.player.body.setVelocity(0);
 
         if (this.cursors.space.isDown) {
-            this.purpleTownie.body.setVelocityY(-80);
+            this.player.body.setVelocityY(-80);
         }
 
         // Check for arrow key inputs and move character accordingly
         if (this.cursors.left.isDown) {
-            this.purpleTownie.body.setVelocityX(-100);
-            this.purpleTownie.flipX = true; // Flip the sprite to face left
+            this.player.body.setVelocityX(-100);
+            this.player.flipX = true; // Flip the sprite to face left
         } else if (this.cursors.right.isDown) {
-            this.purpleTownie.body.setVelocityX(100);
-            this.purpleTownie.flipX = false; // Flip the sprite to face right
+            this.player.body.setVelocityX(100);
+            this.player.flipX = false; // Flip the sprite to face right
         } else if (this.cursors.up.isDown) {
-            this.purpleTownie.body.setVelocityY(-100);
+            this.player.body.setVelocityY(-100);
         } else if (this.cursors.down.isDown) {
-            this.purpleTownie.body.setVelocityY(100);
+            this.player.body.setVelocityY(100);
         }
 
         if (this.isXKeyDown && this.weaponFlag) {
@@ -355,8 +455,16 @@ class DarkCave extends Phaser.Scene {
         let offsetX = -4; // Initial offset from the character's x position
 
         this.heartsGroup.children.iterate(heart => {
-            heart.setPosition(this.purpleTownie.x + offsetX, this.purpleTownie.y - 8); // Adjust y-position to be above the character's head
+            heart.setPosition(this.player.x + offsetX, this.player.y - 8); // Adjust y-position to be above the character's head
             offsetX += 12; // Increment the offset for each heart
+        });
+
+        // Update heart position relative to the character
+        let offsetGiantX = -4; // Initial offset from the character's x position
+
+        this.heartsGiantGroup.children.iterate(heart => {
+            heart.setPosition(this.giant.x + offsetGiantX, this.giant.y - 8); // Adjust y-position to be above the character's head
+            offsetGiantX += 12; // Increment the offset for each heart
         });
 
         if (Phaser.Input.Keyboard.JustDown(this.rKey)) {
@@ -365,25 +473,78 @@ class DarkCave extends Phaser.Scene {
 
         // Update sword position relative to the character
         this.updateSwordPosition();
+
+        const isCollidingWithDoor = this.physics.overlap(this.player, this.openDoor);
+
+        // If the player is not colliding with the open door, re-enable collisions with the castle layer
+        if (!isCollidingWithDoor) {
+            this.castleLayer.forEachTile(tile => {
+                if (tile.properties.collides) {
+                    tile.setCollision(true);
+                }
+            });
+        }
     }
 
     updateSwordPosition() {
         // Calculate sword position relative to the townie's center
-        const swordOffsetX = this.purpleTownie.flipX ? -5 : 20; // Distance from the townie's center
+        const swordOffsetX = this.player.flipX ? -5 : 20; // Distance from the townie's center
         const swordOffsetY = 10; // Adjust this value to position the sword vertically
 
         // Update the sword position
-        this.sword.x = this.purpleTownie.x + swordOffsetX;
-        this.sword.y = this.purpleTownie.y + swordOffsetY;
+        this.sword.x = this.player.x + swordOffsetX;
+        this.sword.y = this.player.y + swordOffsetY;
 
         // Flip the sword sprite based on the movement direction of the townie
-        this.sword.setFlipX(this.purpleTownie.flipX);
+        this.sword.setFlipX(this.player.flipX);
+
+        if (!this.physics.overlap(this.sword, this.giant)) {
+            this.isSwordHit = false; // Reset the flag if the sword is not overlapping with the giant
+        }
     }
 
     removeHeart() {
         if (this.heartsGroup.getLength() > 0) {
             const heartToRemove = this.heartsGroup.getChildren()[this.heartsGroup.getLength() - 1];
             heartToRemove.destroy();
+        }
+    }
+
+    removeGiantHeart() {
+        if (this.heartsGiantGroup.getLength() > 0) {
+            const heartToRemove = this.heartsGiantGroup.getChildren()[this.heartsGiantGroup.getLength() - 1];
+            heartToRemove.destroy();
+        }
+    }
+
+    updateHeartsDisplay() {
+        // Clear existing hearts display
+        this.heartsGroup.clear(true);
+
+        // Add hearts above the character based on the current number of lives
+        for (let i = 0; i < this.lives; i++) {
+            const heart = this.add.sprite(20 + i * 20, 20, "fullHeartMysticalCastle").setOrigin(0.5, 0.5); // Use this.add.sprite instead of this.physics.add.sprite
+            this.heartsGroup.add(heart);
+        }
+    }
+
+
+    playerHitBySpikes(player, spikes) {
+        // Check if the player is currently vulnerable (hasn't been hit recently)
+        if (this.isVulnerable) {
+            // Remove a heart when the character is hit by a snake
+            this.removeHeart();
+
+            // Set the character as not vulnerable and start the cooldown timer
+            this.isVulnerable = false;
+            this.time.delayedCall(1000, () => {
+                this.isVulnerable = true;
+            });
+
+            // Restart the scene when all hearts are gone
+            if (this.heartsGroup.getLength() === 0) {
+                this.scene.restart();
+            }
         }
     }
 
