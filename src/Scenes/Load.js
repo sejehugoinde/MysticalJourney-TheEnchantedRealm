@@ -17,8 +17,8 @@ class Load extends Phaser.Scene {
         this.load.image("giantSword", "giantSword.png");
         this.load.image("speakingBubble", "message_square.png");
         this.load.image("fullHeartMysticalCastle", "fullHeartMysticalCastle.png");
-
-
+        this.load.image("snake", "snake.png");
+        this.load.image("playerEnchantedForest", "playerEnchantedForest.png");
 
         // Load tilemap images with unique keys
         this.load.image("colored_tilemap_tiles", "colored_tilemap_packed.png");
