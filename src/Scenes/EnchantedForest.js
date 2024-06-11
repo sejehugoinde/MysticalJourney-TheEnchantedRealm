@@ -110,7 +110,7 @@ class EnchantedForest extends Phaser.Scene {
         this.heartsGroup.addMultiple([heart1, heart2, heart3]);
 
         // Create orc sprite and add it to the orc group
-        this.weakOrc = this.physics.add.sprite(this.tileXtoWorld(25), this.tileYtoWorld(15), "weakOrch").setOrigin(0, 0);
+        this.weakOrc = this.physics.add.sprite(this.tileXtoWorld(14), this.tileYtoWorld(6), "weakOrch").setOrigin(0, 0);
         this.weakOrc.setScale(1.5);
         this.orcGroup.add(this.weakOrc);
 
@@ -327,7 +327,7 @@ class EnchantedForest extends Phaser.Scene {
 
         this.physics.add.overlap(this.player, this.portal2, () => {
             if (!this.portalCooldown) {
-                this.player.setPosition(this.tileXtoWorld(23.5), this.tileYtoWorld(12));
+                this.player.setPosition(this.tileXtoWorld(12), this.tileYtoWorld(5));
                 this.setPortalCooldown();
             }
         });
