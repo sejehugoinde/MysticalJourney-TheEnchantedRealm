@@ -49,17 +49,16 @@ class DarkCave extends Phaser.Scene {
         this.castleLayer.setCollisionByProperty({ collides: true });
         this.graveyardLayer.setCollisionByProperty({ collides: true });
 
+        // // CREATE GROUPS FOR CHARACTERS
+        this.giantGroup = this.add.group();
+        this.heartsGroup = this.add.group();
+        this.heartsGiantGroup = this.add.group();
+
         // ENEMY RELATED
         // Create orc sprite and add it to the orc group
         this.giant = this.physics.add.sprite(this.tileXtoWorld(25), this.tileYtoWorld(15), "giant").setOrigin(0, 0);
         this.giant.setScale(2);
         this.giantGroup.add(this.giant);
-
-        // Add three hearts above the giant
-        for (let i = 0; i < 3; i++) {
-            const heart = this.add.sprite(20 + i * 20, 20, "fullHeartMysticalCastle").setOrigin(0.5, 0.5);
-            this.heartsGiantGroup.add(heart);
-        }
 
         // Create the giantSword as a physics sprite and add it to the orc group
         this.giantSword = this.physics.add.sprite(this.giant.x, this.giant.y, "giantSword").setOrigin(0.5, 0.5);
@@ -189,10 +188,7 @@ class DarkCave extends Phaser.Scene {
         });
 
 
-        // CREATE GROUPS
-        this.giantGroup = this.add.group();
-        this.heartsGroup = this.add.group();
-        this.heartsGiantGroup = this.add.group();
+        // CREATE GROUPS FOR OBJECTS
         this.coinGroup = this.add.group(this.coin);
         this.openChestGroup = this.add.group(this.openChest);
         this.closedChestGroup = this.add.group(this.closedChest);
@@ -202,6 +198,11 @@ class DarkCave extends Phaser.Scene {
         for (let i = 0; i < this.lives; i++) {
             const heart = this.add.sprite(20 + i * 20, 20, "fullHeartMysticalCastle").setOrigin(0.5, 0.5);
             this.heartsGroup.add(heart);
+        }
+
+        for (let i = 0; i < 3; i++) {
+            const heart = this.add.sprite(20 + i * 20, 20, "fullHeartMysticalCastle").setOrigin(0.5, 0.5);
+            this.heartsGiantGroup.add(heart);
         }
 
         // Enable physics for the townsfolk sprite without debug visuals
@@ -334,78 +335,8 @@ class DarkCave extends Phaser.Scene {
 
     }
 
-    setRandomOrcMovement() {
-        // Generate a random direction and speed
-        const directions = [
-            { x: 1, y: 0 }, // right
-            { x: -1, y: 0 }, // left
-            { x: 0, y: 1 }, // down
-            { x: 0, y: -1 } // up
-        ];
-        const randomDirection = Phaser.Math.RND.pick(directions);
-
-        // Set velocity for both orc and giantSword
-        this.giantGroup.children.iterate(child => {
-            child.setVelocity(randomDirection.x * this.orcSpeed, randomDirection.y * this.orcSpeed);
-        });
-
-        // Set a timer to change direction after a random interval
-        const randomInterval = Phaser.Math.Between(2000, 4000); // Increase the interval range for slower changes
-        this.time.delayedCall(randomInterval, this.setRandomOrcMovement, [], this);
-    }
-
-
-    setRandomGiantSwordMovement() {
-        // Define movement parameters
-        const moveDistance = 50; // Distance the giantSword will move away from the orc
-        const moveSpeed = 1000; // Speed of the movement in milliseconds
-
-        // Clear any existing tweens on the giantSword
-        this.tweens.killTweensOf(this.giantSword);
-
-        // Tween to move the giantSword away from the orc
-        this.tweengiantSwordToRight = this.tweens.add({
-            targets: this.giantSword,
-            x: () => this.giant.x + moveDistance, // Move relative to the orc's position
-            y: () => this.giant.y, // Keep the giantSword at the same vertical position as the orc
-            duration: moveSpeed,
-            ease: 'Linear',
-            onStart: () => {
-                this.giantSword.flipX = false; // Ensure the giantSword is not flipped initially
-            },
-            onComplete: () => {
-                this.giantSword.flipX = true; // Flip the giantSword to look like it has been thrown
-                this.tweengiantSwordToLeft.play(); // Start the return tween
-            }
-        });
-
-        // Tween to move the giantSword back to the orc
-        this.tweengiantSwordToLeft = this.tweens.add({
-            targets: this.giantSword,
-            x: () => this.giant.x, // Move back to the orc's position
-            y: () => this.giant.y, // Keep the giantSword at the same vertical position as the orc
-            duration: moveSpeed,
-            ease: 'Linear',
-            paused: true, // Start paused, will be played on completion of the first tween
-            onComplete: () => {
-                this.giantSword.flipX = false; // Reset flip for return animation
-            }
-        });
-
-        // Start the first tween
-        this.tweengiantSwordToRight.play();
-
-        // Handle collision detection with coins
-        this.physics.add.overlap(this.player, this.key, (obj1, obj2) => {
-            obj2.destroy();
-            alert("You got a knife to pick a door open!");
-            this.keyFlag = true;
-        });
-
-        this.rKey = this.input.keyboard.addKey('R');
-    }
-
     update() {
+
         // Reset velocity
         this.player.body.setVelocity(0);
 
@@ -475,6 +406,7 @@ class DarkCave extends Phaser.Scene {
     }
 
     updateSwordPosition() {
+
         // Calculate sword position relative to the townie's center
         const swordOffsetX = this.player.flipX ? -5 : 20; // Distance from the townie's center
         const swordOffsetY = 10; // Adjust this value to position the sword vertically
@@ -492,6 +424,8 @@ class DarkCave extends Phaser.Scene {
     }
 
     removeHeart() {
+        this.heartsGroup.clear(true);
+
         if (this.heartsGroup.getLength() > 0) {
             const heartToRemove = this.heartsGroup.getChildren()[this.heartsGroup.getLength() - 1];
             heartToRemove.destroy();
@@ -534,6 +468,82 @@ class DarkCave extends Phaser.Scene {
                 this.scene.restart();
             }
         }
+    }
+
+
+    setRandomOrcMovement() {
+
+        // Generate a random direction and speed
+        const directions = [
+            { x: 1, y: 0 }, // right
+            { x: -1, y: 0 }, // left
+            { x: 0, y: 1 }, // down
+            { x: 0, y: -1 } // up
+        ];
+        const randomDirection = Phaser.Math.RND.pick(directions);
+
+        // Set velocity for both orc and giantSword
+        this.giantGroup.children.iterate(child => {
+            child.setVelocity(randomDirection.x * this.orcSpeed, randomDirection.y * this.orcSpeed);
+        });
+
+        // Set a timer to change direction after a random interval
+        const randomInterval = Phaser.Math.Between(2000, 4000); // Increase the interval range for slower changes
+        this.time.delayedCall(randomInterval, this.setRandomOrcMovement, [], this);
+    }
+
+
+    setRandomGiantSwordMovement() {
+
+        // Define movement parameters
+        const moveDistance = 50; // Distance the giantSword will move away from the orc
+        const moveSpeed = 1000; // Speed of the movement in milliseconds
+
+        // Clear any existing tweens on the giantSword
+        this.tweens.killTweensOf(this.giantSword);
+
+        // Tween to move the giantSword away from the orc
+        this.tweengiantSwordToRight = this.tweens.add({
+            targets: this.giantSword,
+            x: () => this.giant.x + moveDistance, // Move relative to the orc's position
+            y: () => this.giant.y, // Keep the giantSword at the same vertical position as the orc
+            duration: moveSpeed,
+            ease: 'Linear',
+            onStart: () => {
+                this.giantSword.flipX = false; // Ensure the giantSword is not flipped initially
+            },
+            onComplete: () => {
+                this.giantSword.flipX = true; // Flip the giantSword to look like it has been thrown
+                this.tweengiantSwordToLeft.play(); // Start the return tween
+            }
+        });
+
+        // Tween to move the giantSword back to the orc
+        this.tweengiantSwordToLeft = this.tweens.add({
+            targets: this.giantSword,
+            x: () => this.giant.x, // Move back to the orc's position
+            y: () => this.giant.y, // Keep the giantSword at the same vertical position as the orc
+            duration: moveSpeed,
+            ease: 'Linear',
+            paused: true, // Start paused, will be played on completion of the first tween
+            onComplete: () => {
+                this.giantSword.flipX = false; // Reset flip for return animation
+            }
+        });
+
+        // Start the first tween
+        this.tweengiantSwordToRight.play();
+
+        // Handle collision detection with coins
+        if (this.key) {
+            this.physics.add.overlap(this.player, this.key, (obj1, obj2) => {
+                obj2.destroy();
+                alert("You got a knife to pick a door open!");
+                this.keyFlag = true;
+            });
+        }
+
+        this.rKey = this.input.keyboard.addKey('R');
     }
 
     tileXtoWorld(tileX) {

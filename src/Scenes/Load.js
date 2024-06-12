@@ -59,7 +59,7 @@ class Load extends Phaser.Scene {
 
     create() {
         
-         this.scene.start("endScene");
+         this.scene.start("darkCaveScene");
     }
 
 }

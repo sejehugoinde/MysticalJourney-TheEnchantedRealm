@@ -135,15 +135,15 @@ class MysticalCastle extends Phaser.Scene {
         this.setRandomGhostWizardMovement();
 
         // Set up initial visibility for ghost wizards
-        // this.toggleGhostWizardsVisibility();
+        this.toggleGhostWizardsVisibility();
 
-        // // Schedule a repeating event to toggle visibility every few seconds
-        // this.time.addEvent({
-        //     delay: 2000, // Adjust the delay as needed
-        //     callback: this.toggleGhostWizardsVisibility,
-        //     callbackScope: this,
-        //     loop: true
-        // });
+        // Schedule a repeating event to toggle visibility every few seconds
+        this.time.addEvent({
+            delay: 2000, // Adjust the delay as needed
+            callback: this.toggleGhostWizardsVisibility,
+            callbackScope: this,
+            loop: true
+        });
 
         // PLAYER RELATED
         // Use setOrigin() to ensure the tile space computations work well
@@ -542,18 +542,37 @@ class MysticalCastle extends Phaser.Scene {
         this.time.delayedCall(randomInterval, this.setRandomGhostWizardMovement, [], this);
     }
 
-    killGhostWizard(ghostWizard) {
+    killGhostWizard(sword, ghostWizard) {
         // Disable physics for the ghostWizard
         this.physics.world.disableBody(ghostWizard.body);
         // Make the ghostWizard sprite invisible
         ghostWizard.setVisible(false);
         // Optionally, you can also destroy the ghostWizard sprite
         ghostWizard.destroy();
-        // Remove the snake from the snakes array
+        // Remove the ghostWizard from the ghostWizards array
         const index = this.ghostWizards.indexOf(ghostWizard);
         if (index !== -1) {
             this.ghostWizards.splice(index, 1);
         }
+    }
+    
+    toggleGhostWizardsVisibility() {
+        // Determine the number of ghost wizards to toggle visibility
+        const numToToggle = Phaser.Math.Between(1, this.ghostWizards.length);
+
+        // Create an array of indices representing all ghost wizards
+        const allIndices = Array.from({ length: this.ghostWizards.length }, (_, index) => index);
+
+        // Shuffle the array of indices randomly
+        Phaser.Utils.Array.Shuffle(allIndices);
+
+        // Select the first 'numToToggle' indices from the shuffled array
+        const indicesToToggle = allIndices.slice(0, numToToggle);
+
+        // Toggle visibility for selected ghost wizards
+        this.ghostWizards.forEach((ghostWizard, index) => {
+            ghostWizard.setVisible(indicesToToggle.includes(index));
+        });
     }
 
     tileXtoWorld(tileX) {

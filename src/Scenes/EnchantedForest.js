@@ -36,7 +36,7 @@ class EnchantedForest extends Phaser.Scene {
         this.groundLayer.setCollisionByProperty({ collides: true });
 
         // Create townsfolk sprite
-        this.player = this.add.sprite(this.tileXtoWorld(5), this.tileYtoWorld(15), "playerEnchantedForest").setOrigin(0, 0);
+        this.player = this.add.sprite(this.tileXtoWorld(1), this.tileYtoWorld(1), "playerEnchantedForest").setOrigin(0, 0);
 
         // Set the depth of the townsfolk sprite
         this.player.setDepth(1);
@@ -213,10 +213,10 @@ class EnchantedForest extends Phaser.Scene {
         // Camera settings
         this.cameras.main.setBounds(0, 0, this.map.widthInPixels, this.map.heightInPixels);
         this.cameras.main.setSize(config.width, config.height); // Set camera size to match the game config
-        this.cameras.main.setZoom(2);
+        this.cameras.main.setZoom(4);
 
         // Add camera follow to the sprite
-        this.cameras.main.startFollow(this.player, true, 0.25, 0.25); // (target, [,roundPixels][,lerpX][,lerpY])
+        this.cameras.main.startFollow(this.player, true, 0.1, 0.1); // (target, [,roundPixels][,lerpX][,lerpY])
         this.cameras.main.setDeadzone(50, 50);
 
         // Add key handlers for arrow keys
@@ -334,7 +334,7 @@ class EnchantedForest extends Phaser.Scene {
 
     }
 
-    killSnake(snake) {
+    killSnake(sword, snake) {
         // Disable physics for the snake
         this.physics.world.disableBody(snake.body);
         // Make the snake sprite invisible
