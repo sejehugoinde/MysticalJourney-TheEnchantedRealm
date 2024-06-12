@@ -22,6 +22,7 @@ class DarkCave extends Phaser.Scene {
         // Sounds
         this.sound.stopAll()
         this.walkSound = this.sound.add('walk');
+        this.playerSword = this.sound.add('playerSword');
 
         // Conditionals
         this.keyFlag = false;
@@ -64,6 +65,7 @@ class DarkCave extends Phaser.Scene {
         // Create giant sprite and add it to the giant group
         this.giant = this.physics.add.sprite(this.tileXtoWorld(25), this.tileYtoWorld(15), "giant").setOrigin(0, 0);
         this.giant.setScale(2);
+        this.giant.setDepth(0);
         this.giantGroup.add(this.giant);
 
         // Create the giantSword as a physics sprite and add it to the giant group
@@ -88,6 +90,7 @@ class DarkCave extends Phaser.Scene {
         // Create player sprite
         this.player = this.add.sprite(this.tileXtoWorld(1), this.tileYtoWorld(1), "darkCavePlayer").setOrigin(0, 0);
         this.player.setScale(1);
+        this.player.setDepth(1);
 
         // Create sword sprite using a frame from the spritesheet
         this.sword = this.physics.add.sprite(0, 0, "swordDarkCave").setOrigin(0.5, 0.5);
@@ -248,7 +251,6 @@ class DarkCave extends Phaser.Scene {
         // Overlaps in game
         this.physics.add.overlap(this.player, this.closedDoorRight, () => {
             if (!this.keyFlag) {
-                alert("The door seems locked...")
             } else {
                 // If the player has the key, allow them to access the closed door
                 this.scene.start("mysticalCastleScene", { lives: this.lives });
@@ -257,7 +259,6 @@ class DarkCave extends Phaser.Scene {
 
         this.physics.add.overlap(this.player, this.closedDoorLeft, () => {
             if (!this.keyFlag) {
-                alert("The door seems locked...")
             } else {
                 // If the player has the key, allow them to access the closed door
                 this.scene.start("mysticalCastleScene", { lives: this.lives });
@@ -384,6 +385,7 @@ class DarkCave extends Phaser.Scene {
 
         if (this.isXKeyDown && this.weaponFlag) {
             // Update sword physics only when "X" key is pressed and the weapon flag is true
+            this.playerSword.play();
             this.physics.world.enable(this.sword);
             this.sword.setVisible(true);
             this.updateSwordPosition();
@@ -452,6 +454,7 @@ class DarkCave extends Phaser.Scene {
         if (this.heartsGroup.getLength() > 0) {
             const heartToRemove = this.heartsGroup.getChildren()[this.heartsGroup.getLength() - 1];
             heartToRemove.destroy();
+            this.lives--;
         }
     }
 

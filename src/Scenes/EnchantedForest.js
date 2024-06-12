@@ -21,9 +21,9 @@ class EnchantedForest extends Phaser.Scene {
     create() {
         // Sounds
         this.sound.stopAll()
-
         this.walkSound = this.sound.add('walk');
-        
+        this.playerSword = this.sound.add('playerSword');
+
         this.keyFlag = false;
         this.weaponFlag = false;
         this.isVulnerable = true;
@@ -48,6 +48,7 @@ class EnchantedForest extends Phaser.Scene {
 
         // Create player sprite
         this.player = this.add.sprite(this.tileXtoWorld(1), this.tileYtoWorld(1), "playerEnchantedForest").setOrigin(0, 0);
+        this.player.setDepth(1);
 
         // Find the objects in the "Objects" layer in Phaser
         this.closedDoorLeft = this.map.createFromObjects("Objects", {
@@ -120,6 +121,7 @@ class EnchantedForest extends Phaser.Scene {
         // Create orc sprite and add it to the orc group
         this.weakOrc = this.physics.add.sprite(this.tileXtoWorld(14), this.tileYtoWorld(6), "weakOrch").setOrigin(0, 0);
         this.weakOrc.setScale(1.5);
+        this.weakOrc.setDepth(0);
         this.orcGroup.add(this.weakOrc);
 
         // Create the axe as a physics sprite and add it to the orc group
@@ -166,6 +168,7 @@ class EnchantedForest extends Phaser.Scene {
 
             this.snake = this.physics.add.sprite(x, y, "snake").setOrigin(0, 0);
             this.snake.setScale(1);
+            this.snake.setDepth(0);
             this.snakes.push(this.snake);
             this.snakeGroup.add(this.snake);
         }
@@ -234,7 +237,6 @@ class EnchantedForest extends Phaser.Scene {
 
         this.physics.add.overlap(this.player, this.closedDoorRight, (obj1, obj2) => {
             if (!this.keyFlag) {
-                alert("The door seems locked...")
             } else {
                 // If the player has the key, allow them to access the closed door
                 this.scene.start("darkCaveScene", { lives: this.lives });
@@ -243,7 +245,6 @@ class EnchantedForest extends Phaser.Scene {
 
         this.physics.add.overlap(this.player, this.closedDoorLeft, (obj1, obj2) => {
             if (!this.keyFlag) {
-                alert("The door seems locked...")
             } else {
                 // If the player has the key, allow them to access the closed door
                 this.scene.start("darkCaveScene", { lives: this.lives });
@@ -445,6 +446,7 @@ class EnchantedForest extends Phaser.Scene {
         }
         if (this.isXKeyDown && this.weaponFlag) {
             // Update sword physics only when "X" key is pressed and the weapon flag is true
+            this.playerSword.play();
             this.physics.world.enable(this.sword);
             this.sword.setVisible(true);
             this.updateSwordPosition();

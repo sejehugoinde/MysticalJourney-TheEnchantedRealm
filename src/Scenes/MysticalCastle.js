@@ -22,6 +22,7 @@ class MysticalCastle extends Phaser.Scene {
         // Sounds
         this.sound.stopAll()
         this.walkSound = this.sound.add('walk');
+        this.playerSword = this.sound.add('playerSword');
 
         this.lives = data.lives;
         this.keyFlag = false;
@@ -62,6 +63,7 @@ class MysticalCastle extends Phaser.Scene {
         // Creating the enemy wizard
         this.wizard = this.physics.add.sprite(this.tileXtoWorld(25), this.tileYtoWorld(15), "wizardMysticalCastle").setOrigin(0, 0);
         this.wizard.setScale(2);
+        this.wizard.setDepth(0);
         this.wizardGroup.add(this.wizard);
 
         const wandOffsetX = -5;
@@ -124,6 +126,7 @@ class MysticalCastle extends Phaser.Scene {
 
             this.ghostWizard = this.physics.add.sprite(x, y, "ghostWizard").setOrigin(0, 0);
             this.ghostWizard.setScale(1);
+            this.ghostWizard.setDepth(0);
             this.ghostWizards.push(this.ghostWizard);
             this.ghostWizardGroup.add(this.ghostWizard);
         }
@@ -144,7 +147,7 @@ class MysticalCastle extends Phaser.Scene {
 
         // Use setOrigin() to ensure the tile space computations work well
         this.player = this.add.sprite(this.tileXtoWorld(1), this.tileYtoWorld(1), "playerMysticalCastle").setOrigin(0, 0);
-
+        this.player.setDepth(1);
         // Enable physics for the sprite without debug visuals
         this.physics.add.existing(this.player);
         this.player.body.setCollideWorldBounds(true);
@@ -358,7 +361,6 @@ class MysticalCastle extends Phaser.Scene {
         // Add collision detection for the closed door
         this.physics.add.overlap(this.player, this.lockedDoor, (player, door) => {
             if (!this.keyFlag) {
-                // Player doesn't have the key, provide feedback or take appropriate action
             } else {
                 // Player has the key, open the door
                 door.destroy(); // Remove the closed door
@@ -441,7 +443,8 @@ class MysticalCastle extends Phaser.Scene {
         }
 
         if (this.isXKeyDown && this.weaponFlag) {
-            // Update sword physics only when "X" key is pressed and the weapon flag is true
+            // Update sword physics only when "X" key is pressed and the weapon flag is true'
+            this.playerSword.play();
             this.physics.world.enable(this.sword);
             this.sword.setVisible(true);
             this.updateSwordPosition();
@@ -549,6 +552,7 @@ class MysticalCastle extends Phaser.Scene {
         if (this.heartsGroup.getLength() > 0) {
             const heartToRemove = this.heartsGroup.getChildren()[this.heartsGroup.getLength() - 1];
             heartToRemove.destroy();
+            this.lives--;
         }
     }
 
@@ -646,6 +650,17 @@ class MysticalCastle extends Phaser.Scene {
         this.ghostWizards.forEach((ghostWizard, index) => {
             ghostWizard.setVisible(indicesToToggle.includes(index));
         });
+    }
+
+    updateHeartsDisplay() {
+        // Clear existing hearts display
+        this.heartsGroup.clear(true);
+
+        // Add hearts above the character based on the current number of lives
+        for (let i = 0; i < this.lives; i++) {
+            const heart = this.add.sprite(20 + i * 20, 20, "fullHeartMysticalCastle").setOrigin(0.5, 0.5); // Use this.add.sprite instead of this.physics.add.sprite
+            this.heartsGroup.add(heart);
+        }
     }
 
     tileXtoWorld(tileX) {

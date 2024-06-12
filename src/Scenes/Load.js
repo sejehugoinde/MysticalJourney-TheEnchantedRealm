@@ -10,8 +10,7 @@ class Load extends Phaser.Scene {
     preload() {
         this.load.setPath("./assets/");
         this.load.audio('walk', 'footstep01.ogg');
-        
-        
+        this.load.audio('playerSword', 'knifeSlice.ogg');
 
         // Load png's to enchantedForestScene
         this.load.image("weakOrch", "weak_orch.png");
@@ -62,8 +61,7 @@ class Load extends Phaser.Scene {
     }   
 
     create() {
-        
-         this.scene.start("mysticalCastleScene");
+         this.scene.start("endCreditScene");
     }
 
 }

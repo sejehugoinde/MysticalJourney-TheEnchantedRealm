@@ -47,7 +47,9 @@ class Start extends Phaser.Scene {
 
         // Create player sprite
         // Use setOrigin() to ensure the tile space computations work well
-        this.my.sprite.player = this.add.sprite(this.tileXtoWorld(6), this.tileYtoWorld(5), "purple").setOrigin(0, 0);
+        this.my.sprite.player = this.add.sprite(this.tileXtoWorld(6), this.tileYtoWorld(5), "playerEnchantedForest").setOrigin(0, 0);
+        this.activeCharacter = this.my.sprite.player;
+        this.activeCharacter.setScale(2);
 
         // Enable physics for the sprite without debug visuals
         this.physics.add.existing(this.my.sprite.player);
@@ -61,8 +63,6 @@ class Start extends Phaser.Scene {
         // Add camera follow to the sprite
         this.cameras.main.startFollow(this.my.sprite.player, true, 0.25, 0.25); // (target, [,roundPixels][,lerpX][,lerpY])
         this.cameras.main.setDeadzone(50, 50);
-
-        this.activeCharacter = this.my.sprite.player;
 
         // Add key handlers for arrow keys
         this.cursors = this.input.keyboard.createCursorKeys();

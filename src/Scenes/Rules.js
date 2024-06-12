@@ -46,7 +46,7 @@ class Rules extends Phaser.Scene {
 
         // Create player sprite
         // Use setOrigin() to ensure the tile space computations work well
-        this.my.sprite.player = this.add.sprite(this.tileXtoWorld(1), this.tileYtoWorld(1), "purple").setOrigin(0, 0);
+        this.my.sprite.player = this.add.sprite(this.tileXtoWorld(1), this.tileYtoWorld(1), "darkCavePlayer").setOrigin(0, 0);
 
         // Enable physics for the sprite without debug visuals
         this.physics.add.existing(this.my.sprite.player);

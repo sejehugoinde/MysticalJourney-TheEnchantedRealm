@@ -4,7 +4,7 @@
 
 class EndCredit extends Phaser.Scene {
     constructor() {
-        super("endScene");
+        super("endCreditScene");
         this.my = { sprite: {}, text: {} };
     }
 
@@ -26,9 +26,9 @@ class EndCredit extends Phaser.Scene {
         this.walkSound = this.sound.add('walk');
         
         // Text in scene
-        this.my.text.startGame = this.add.bitmapText(15, 210, "rocketSquare", "Play the game again");
+        this.my.text.startGame = this.add.bitmapText(10, 180, "rocketSquare", "Play the game again");
         this.my.text.startGame.setFontSize(8); 
-        this.my.text.learnRules = this.add.bitmapText(160, 210, "rocketSquare", "Go back to the start");
+        this.my.text.learnRules = this.add.bitmapText(160, 180, "rocketSquare", "Go back to the start");
         this.my.text.learnRules.setFontSize(8);
 
         // Create a new tilemap
@@ -39,8 +39,8 @@ class EndCredit extends Phaser.Scene {
         this.tileset = this.map.addTilesetImage("kenney-tiny-town", "tilemap_tiles");
 
         // Create player sprite
-        this.my.sprite.player = this.add.sprite(this.tileXtoWorld(5), this.tileYtoWorld(5), "purple").setOrigin(0, 0);
-
+        this.my.sprite.player = this.add.sprite(this.tileXtoWorld(5), this.tileYtoWorld(7), "playerMysticalCastle").setOrigin(0, 0);
+        
         // Enable physics for the sprite without debug visuals
         this.physics.add.existing(this.my.sprite.player);
         this.my.sprite.player.body.setCollideWorldBounds(true);
