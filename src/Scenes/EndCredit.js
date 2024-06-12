@@ -24,12 +24,29 @@ class EndCredit extends Phaser.Scene {
         // Sounds
         this.sound.stopAll()
         this.walkSound = this.sound.add('walk');
-        
+
         // Text in scene
+        this.my.text.congrats1 = this.add.bitmapText(90, 10, "rocketSquare", "Congratulation!");
+        this.my.text.congrats1.setFontSize(10);
+        this.my.text.congrats2 = this.add.bitmapText(40, 20, "rocketSquare", "You saved the princess and won the game");
+        this.my.text.congrats2.setFontSize(8);
         this.my.text.startGame = this.add.bitmapText(10, 180, "rocketSquare", "Play the game again");
-        this.my.text.startGame.setFontSize(8); 
+        this.my.text.startGame.setFontSize(8);
         this.my.text.learnRules = this.add.bitmapText(160, 180, "rocketSquare", "Go back to the start");
         this.my.text.learnRules.setFontSize(8);
+        this.add.bitmapText(10, 30, 'rocketSquare', 'Credits', 16);
+
+        // Add credits text
+        const creditsText = `
+                Game Design: Sandra Sorensen
+                Programming: Sandra Sorensen
+                Assets: Kenny
+                Music: Kenny
+                Special Thanks: Professor Jim Whitehead 
+                Code snippets from course
+                `;
+
+        this.add.bitmapText(10, 40, 'rocketSquare', creditsText, 8);
 
         // Create a new tilemap
         this.map = this.add.tilemap("end", this.TILESIZE, this.TILESIZE, this.TILEHEIGHT, this.TILEWIDTH);
@@ -40,18 +57,18 @@ class EndCredit extends Phaser.Scene {
 
         // Create player sprite
         this.my.sprite.player = this.add.sprite(this.tileXtoWorld(5), this.tileYtoWorld(7), "playerMysticalCastle").setOrigin(0, 0);
-        
+
         // Enable physics for the sprite without debug visuals
         this.physics.add.existing(this.my.sprite.player);
         this.my.sprite.player.body.setCollideWorldBounds(true);
 
         // Camera settings
         this.cameras.main.setBounds(0, 0, this.map.widthInPixels, this.map.heightInPixels);
-        this.cameras.main.setSize(config.width, config.height); 
+        this.cameras.main.setSize(config.width, config.height);
         this.cameras.main.setZoom(this.SCALE);
 
         // Add camera follow to the sprite
-        this.cameras.main.startFollow(this.my.sprite.player, true, 0.25, 0.25); 
+        this.cameras.main.startFollow(this.my.sprite.player, true, 0.25, 0.25);
         this.cameras.main.setDeadzone(50, 50);
 
         this.activeCharacter = this.my.sprite.player;
@@ -102,21 +119,6 @@ class EndCredit extends Phaser.Scene {
         this.physics.add.overlap(this.activeCharacter, this.startGameRight, (obj1, obj2) => {
             this.scene.start("enchantedForestScene");
         });
-
-        // Add title text
-        this.add.bitmapText(10, 10, 'rocketSquare', 'Credits', 16);
-
-        // Add credits text
-        const creditsText = `
-        Game Design: Sandra Sorensen
-        Programming: Sandra Sorensen
-        Assets: Kenny
-        Music: Kenny
-        Special Thanks: Professor Jim Whitehead 
-        Code snippets from course
-        `;
-
-        this.add.bitmapText(10, 40, 'rocketSquare', creditsText, 8);
     }
 
     update() {
@@ -151,7 +153,7 @@ class EndCredit extends Phaser.Scene {
                 this.walkSound.play({ loop: true });
             }
         }
-        else{
+        else {
             this.walkSound.stop();
         }
     }
