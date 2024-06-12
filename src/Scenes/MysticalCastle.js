@@ -266,7 +266,7 @@ class MysticalCastle extends Phaser.Scene {
 
         // Enable overlaps in game
         this.physics.add.overlap(this.player, this.princess, (obj1, obj2) => {
-            this.scene.start("endScene");
+            this.scene.start("endCreditScene");
         });
 
         this.physics.add.overlap(this.player, this.chestTongue, (obj1, obj2) => {
