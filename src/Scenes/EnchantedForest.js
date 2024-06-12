@@ -7,7 +7,9 @@ class EnchantedForest extends Phaser.Scene {
         super("enchantedForestScene");
     }
 
-    preload() { }
+    preload() { 
+
+    }
 
     init() {
         this.TILESIZE = 16;
@@ -17,6 +19,11 @@ class EnchantedForest extends Phaser.Scene {
     }
 
     create() {
+        // Sounds
+        this.sound.stopAll()
+
+        this.walkSound = this.sound.add('walk');
+        
         this.keyFlag = false;
         this.weaponFlag = false;
         this.isVulnerable = true;
@@ -412,16 +419,30 @@ class EnchantedForest extends Phaser.Scene {
         // Check for arrow key inputs and move character accordingly
         if (this.cursors.left.isDown) {
             this.player.body.setVelocityX(-40);
+            if (!this.walkSound.isPlaying) {
+                this.walkSound.play({ loop: true });
+            }
             this.player.flipX = true; // Flip the sprite to face left
         } else if (this.cursors.right.isDown) {
             this.player.body.setVelocityX(40);
+            if (!this.walkSound.isPlaying) {
+                this.walkSound.play({ loop: true });
+            }
             this.player.flipX = false; // Flip the sprite to face right
         } else if (this.cursors.up.isDown) {
             this.player.body.setVelocityY(-40);
+            if (!this.walkSound.isPlaying) {
+                this.walkSound.play({ loop: true });
+            }
         } else if (this.cursors.down.isDown) {
             this.player.body.setVelocityY(40);
+            if (!this.walkSound.isPlaying) {
+                this.walkSound.play({ loop: true });
+            }
         }
-
+        else{
+            this.walkSound.stop();
+        }
         if (this.isXKeyDown && this.weaponFlag) {
             // Update sword physics only when "X" key is pressed and the weapon flag is true
             this.physics.world.enable(this.sword);

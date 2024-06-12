@@ -21,6 +21,10 @@ class Rules extends Phaser.Scene {
     }
 
     create() {
+        // Sounds
+        this.sound.stopAll()
+        this.walkSound = this.sound.add('walk');
+
         // Adjusting text positions and sizes
         const textStyle = { fontSize: 8 };
 
@@ -119,14 +123,29 @@ class Rules extends Phaser.Scene {
         // Check for arrow key inputs and move character accordingly
         if (this.cursors.left.isDown) {
             this.activeCharacter.body.setVelocityX(-100);
+            if (!this.walkSound.isPlaying) {
+                this.walkSound.play({ loop: true });
+            }
             this.activeCharacter.flipX = true; // Flip the sprite to face left
         } else if (this.cursors.right.isDown) {
             this.activeCharacter.body.setVelocityX(100);
+            if (!this.walkSound.isPlaying) {
+                this.walkSound.play({ loop: true });
+            }
             this.activeCharacter.flipX = false; // Flip the sprite to face right
         } else if (this.cursors.up.isDown) {
             this.activeCharacter.body.setVelocityY(-100);
+            if (!this.walkSound.isPlaying) {
+                this.walkSound.play({ loop: true });
+            }
         } else if (this.cursors.down.isDown) {
             this.activeCharacter.body.setVelocityY(100);
+            if (!this.walkSound.isPlaying) {
+                this.walkSound.play({ loop: true });
+            }
+        }
+        else{
+            this.walkSound.stop();
         }
     }
 

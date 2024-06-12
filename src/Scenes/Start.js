@@ -21,6 +21,9 @@ class Start extends Phaser.Scene {
     }
 
     create() {
+        // Sounds
+        this.walkSound = this.sound.add('walk');
+        
         // Text in the game
         this.my.text.welcomeGame1 = this.add.bitmapText(100, 40, "rocketSquare", "Welcome to:");
         this.my.text.welcomeGame1.setFontSize(10);
@@ -113,10 +116,12 @@ class Start extends Phaser.Scene {
         });
 
         this.physics.add.overlap(this.activeCharacter, this.startGameLeft, (obj1, obj2) => {
+            this.walkSound.stop();
             this.scene.start("enchantedForestScene");
         });
 
         this.physics.add.overlap(this.activeCharacter, this.startGameRight, (obj1, obj2) => {
+            this.walkSound.stop();
             this.scene.start("enchantedForestScene");
         });
         this.physics.add.overlap(this.activeCharacter, this.learnCreditsLeft, (obj1, obj2) => {
@@ -140,14 +145,29 @@ class Start extends Phaser.Scene {
         // Check for arrow key inputs and move character accordingly
         if (this.cursors.left.isDown) {
             this.activeCharacter.body.setVelocityX(-100);
+            if (!this.walkSound.isPlaying) {
+                this.walkSound.play({ loop: true });
+            }
             this.activeCharacter.flipX = true; // Flip the sprite to face left
         } else if (this.cursors.right.isDown) {
             this.activeCharacter.body.setVelocityX(100);
+            if (!this.walkSound.isPlaying) {
+                this.walkSound.play({ loop: true });
+            }
             this.activeCharacter.flipX = false; // Flip the sprite to face right
         } else if (this.cursors.up.isDown) {
             this.activeCharacter.body.setVelocityY(-100);
+            if (!this.walkSound.isPlaying) {
+                this.walkSound.play({ loop: true });
+            }
         } else if (this.cursors.down.isDown) {
             this.activeCharacter.body.setVelocityY(100);
+            if (!this.walkSound.isPlaying) {
+                this.walkSound.play({ loop: true });
+            }
+        }
+        else{
+            this.walkSound.stop();
         }
     }
 

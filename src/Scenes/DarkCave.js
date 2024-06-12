@@ -8,6 +8,7 @@ class DarkCave extends Phaser.Scene {
     }
 
     preload() {
+
     }
 
     init() {
@@ -18,6 +19,10 @@ class DarkCave extends Phaser.Scene {
     }
 
     create(data) {
+        // Sounds
+        this.sound.stopAll()
+        this.walkSound = this.sound.add('walk');
+
         // Conditionals
         this.keyFlag = false;
         this.isSwordHit = false;
@@ -352,14 +357,29 @@ class DarkCave extends Phaser.Scene {
         // Check for arrow key inputs and move character accordingly
         if (this.cursors.left.isDown) {
             this.player.body.setVelocityX(-100);
+            if (!this.walkSound.isPlaying) {
+                this.walkSound.play({ loop: true });
+            }
             this.player.flipX = true; // Flip the sprite to face left
         } else if (this.cursors.right.isDown) {
             this.player.body.setVelocityX(100);
+            if (!this.walkSound.isPlaying) {
+                this.walkSound.play({ loop: true });
+            }
             this.player.flipX = false; // Flip the sprite to face right
         } else if (this.cursors.up.isDown) {
             this.player.body.setVelocityY(-100);
+            if (!this.walkSound.isPlaying) {
+                this.walkSound.play({ loop: true });
+            }
         } else if (this.cursors.down.isDown) {
             this.player.body.setVelocityY(100);
+            if (!this.walkSound.isPlaying) {
+                this.walkSound.play({ loop: true });
+            }
+        }
+        else{
+            this.walkSound.stop();
         }
 
         if (this.isXKeyDown && this.weaponFlag) {

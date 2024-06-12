@@ -19,6 +19,10 @@ class MysticalCastle extends Phaser.Scene {
     }
 
     create(data) {
+        // Sounds
+        this.sound.stopAll()
+        this.walkSound = this.sound.add('walk');
+
         this.lives = data.lives;
         this.keyFlag = false;
         this.isSwordHit = false;
@@ -139,7 +143,7 @@ class MysticalCastle extends Phaser.Scene {
         });
 
         // Use setOrigin() to ensure the tile space computations work well
-        this.player = this.add.sprite(this.tileXtoWorld(1), this.tileYtoWorld(1), "purple").setOrigin(0, 0);
+        this.player = this.add.sprite(this.tileXtoWorld(1), this.tileYtoWorld(1), "playerMysticalCastle").setOrigin(0, 0);
 
         // Enable physics for the sprite without debug visuals
         this.physics.add.existing(this.player);
@@ -228,11 +232,18 @@ class MysticalCastle extends Phaser.Scene {
             frame: 82
         })
 
+        this.healthPotion = this.map.createFromObjects("Objects", {
+            name: "healthPotion",
+            key: "tilemap_sheet",
+            frame: 115
+        })
+
         // Enabling the physics bodies 
         this.physics.world.enable(this.princess, Phaser.Physics.Arcade.STATIC_BODY);
         this.physics.world.enable(this.lockedDoor, Phaser.Physics.Arcade.STATIC_BODY);
         this.physics.world.enable(this.chestTongue, Phaser.Physics.Arcade.STATIC_BODY);
         this.physics.world.enable(this.barrels, Phaser.Physics.Arcade.STATIC_BODY);
+        this.physics.world.enable(this.healthPotion, Phaser.Physics.Arcade.STATIC_BODY);
 
         // Convert this.princess to a Phaser GameObject
         if (this.princess.length > 0) {
@@ -363,6 +374,14 @@ class MysticalCastle extends Phaser.Scene {
             }
         });
 
+        this.physics.add.overlap(this.player, this.healthPotion, (player, potion) => {
+            if (this.lives < 3) {
+                this.lives += 1;
+                potion.destroy();
+                this.updateHeartsDisplay(); // Call the function to update hearts display
+            }
+        });
+
         // Listen for "X" key press event
         this.input.keyboard.on('keydown-X', () => {
             this.isXKeyDown = true;
@@ -396,14 +415,29 @@ class MysticalCastle extends Phaser.Scene {
         // Check for arrow key inputs and move character accordingly
         if (this.cursors.left.isDown) {
             this.activeCharacter.body.setVelocityX(-100);
+            if (!this.walkSound.isPlaying) {
+                this.walkSound.play({ loop: true });
+            }
             this.activeCharacter.flipX = true; // Flip the sprite to face left
         } else if (this.cursors.right.isDown) {
             this.activeCharacter.body.setVelocityX(100);
+            if (!this.walkSound.isPlaying) {
+                this.walkSound.play({ loop: true });
+            }
             this.activeCharacter.flipX = false; // Flip the sprite to face right
         } else if (this.cursors.up.isDown) {
             this.activeCharacter.body.setVelocityY(-100);
+            if (!this.walkSound.isPlaying) {
+                this.walkSound.play({ loop: true });
+            }
         } else if (this.cursors.down.isDown) {
             this.activeCharacter.body.setVelocityY(100);
+            if (!this.walkSound.isPlaying) {
+                this.walkSound.play({ loop: true });
+            }
+        }
+        else{
+            this.walkSound.stop();
         }
 
         if (this.isXKeyDown && this.weaponFlag) {

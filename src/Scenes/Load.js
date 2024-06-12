@@ -9,7 +9,18 @@ class Load extends Phaser.Scene {
 
     preload() {
         this.load.setPath("./assets/");
+        this.load.audio('walk', 'footstep01.ogg');
         
+        
+
+        // Load png's to enchantedForestScene
+        this.load.image("weakOrch", "weak_orch.png");
+        this.load.image("axe", "weakOrcAttack.png");
+        this.load.image("sword", "weakOrcAttack.png");
+        this.load.image("fullHeart", "fullHeart.png");
+        this.load.image("snake", "snake.png");
+        this.load.image("playerEnchantedForest", "playerEnchantedForest.png");
+
         // Load png's to darkCaveScene
         this.load.image("darkCavePlayer", "darkCavePlayer.png");
         this.load.image("key", "key.png");
@@ -25,18 +36,7 @@ class Load extends Phaser.Scene {
         this.load.image("wizardWand", "wizardWand.png");
         this.load.image("wizardWandMagic", "wizardWandMagic.png");
         this.load.image("ghostWizard", "ghostWizard.png");
-
-        // Load png's to enchantedForestScene
-        this.load.image("weakOrch", "weak_orch.png");
-        this.load.image("axe", "weakOrcAttack.png");
-        this.load.image("sword", "weakOrcAttack.png");
-        this.load.image("fullHeart", "fullHeart.png");
-        this.load.image("snake", "snake.png");
-        this.load.image("playerEnchantedForest", "playerEnchantedForest.png");
-
-        // TODO: clean-up
-        this.load.image("purple", "purple_townie.png");
-        this.load.image("blue", "blue_townie.png");
+        this.load.image("playerMysticalCastle", "playerMysticalCastle.png");
 
         // Load tilemap images with unique keys
         this.load.image("colored_tilemap_tiles", "colored_tilemap_packed.png");
@@ -63,7 +63,7 @@ class Load extends Phaser.Scene {
 
     create() {
         
-         this.scene.start("endScene");
+         this.scene.start("mysticalCastleScene");
     }
 
 }
