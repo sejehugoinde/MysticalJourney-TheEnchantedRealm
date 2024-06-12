@@ -1,3 +1,7 @@
+// Sandra Sorensen
+// Created: 6/6/2024
+// Phaser: 3.80.0
+
 class EnchantedForest extends Phaser.Scene {
     constructor() {
         super("enchantedForestScene");
@@ -11,18 +15,18 @@ class EnchantedForest extends Phaser.Scene {
         this.TILEWIDTH = 40;
         this.TILEHEIGHT = 25;
     }
-   
+
     create() {
         this.keyFlag = false;
         this.weaponFlag = false;
         this.isVulnerable = true;
         this.isXKeyDown = false;
         this.lives = 3;
-        this.enemySpeed = 5; // Reduced speed of the orc
+        this.enemySpeed = 5;
 
         // Add a cooldown timer for portal transitions
         this.portalCooldown = false;
-        this.portalCooldownDuration = 1500; // 1.5 seconds
+        this.portalCooldownDuration = 1500;
 
         // Create a new tilemap which uses 16x16 tiles, and is 40 tiles wide and 25 tiles tall
         this.map = this.add.tilemap("enchantedForest", this.TILESIZE, this.TILESIZE, this.TILEHEIGHT, this.TILEWIDTH);
@@ -35,11 +39,8 @@ class EnchantedForest extends Phaser.Scene {
         this.groundLayer = this.map.createLayer("Ground-n-Walkways", this.tileset, 0, 0);
         this.groundLayer.setCollisionByProperty({ collides: true });
 
-        // Create townsfolk sprite
+        // Create player sprite
         this.player = this.add.sprite(this.tileXtoWorld(1), this.tileYtoWorld(1), "playerEnchantedForest").setOrigin(0, 0);
-
-        // Set the depth of the townsfolk sprite
-        this.player.setDepth(1);
 
         // Find the objects in the "Objects" layer in Phaser
         this.closedDoorLeft = this.map.createFromObjects("Objects", {
@@ -114,12 +115,19 @@ class EnchantedForest extends Phaser.Scene {
         this.weakOrc.setScale(1.5);
         this.orcGroup.add(this.weakOrc);
 
-        this.snakes = [];
+        // Create the axe as a physics sprite and add it to the orc group
+        this.axe = this.physics.add.sprite(this.weakOrc.x, this.weakOrc.y, "axe").setOrigin(0.5, 0.5);
+        this.axe.setCollideWorldBounds(true);
+        this.orcGroup.add(this.axe);
 
-        // Define the number of snakes you want
-        this.numSnakes = 10;
+        // Set up random movement for the weak orc
+        this.setRandomOrcMovement();
+        this.setRandomAxeMovement();
 
         // Create multiple snake sprites and add them to the snake group
+        this.snakes = [];
+        this.numSnakes = 10;
+
         // Define the spawn area along the edges of the map
         const spawnArea = {
             top: this.map.heightInPixels * 0.2, // 20% from the top
@@ -155,20 +163,8 @@ class EnchantedForest extends Phaser.Scene {
             this.snakeGroup.add(this.snake);
         }
 
-        this.snakeGroup.setDepth(0);
-
-
         // Set up random movement for each snake
         this.setRandomSnakeMovement();
-
-        // Create the axe as a physics sprite and add it to the orc group
-        this.axe = this.physics.add.sprite(this.weakOrc.x, this.weakOrc.y, "axe").setOrigin(0.5, 0.5);
-        this.axe.setCollideWorldBounds(true);
-        this.orcGroup.add(this.axe);
-
-        // Set up random movement for the weak orc
-        this.setRandomOrcMovement();
-        this.setRandomAxeMovement();
 
         // Add this to the create method to repeat axe throwing every 3 seconds
         this.time.addEvent({
@@ -178,10 +174,7 @@ class EnchantedForest extends Phaser.Scene {
             loop: true
         });
 
-        // Set the depth of the orc group to be lower than the townsfolk sprite
-        this.orcGroup.setDepth(0);
-
-        // Enable physics for the townsfolk sprite without debug visuals
+        // Enable physics for the player sprite without debug visuals
         this.physics.add.existing(this.player);
         this.player.body.setCollideWorldBounds(true);
 
@@ -232,11 +225,9 @@ class EnchantedForest extends Phaser.Scene {
         this.physics.world.enable(this.portal1, Phaser.Physics.Arcade.STATIC_BODY);
         this.physics.world.enable(this.portal2, Phaser.Physics.Arcade.STATIC_BODY);
 
-
         this.physics.add.overlap(this.player, this.closedDoorRight, (obj1, obj2) => {
             if (!this.keyFlag) {
-                // If the player hasn't picked up the key yet, prevent them from accessing the closed door
-                // You can add an alert or any other visual feedback to indicate that the door is locked
+                alert("The door seems locked...")
             } else {
                 // If the player has the key, allow them to access the closed door
                 this.scene.start("darkCaveScene", { lives: this.lives });
@@ -245,8 +236,7 @@ class EnchantedForest extends Phaser.Scene {
 
         this.physics.add.overlap(this.player, this.closedDoorLeft, (obj1, obj2) => {
             if (!this.keyFlag) {
-                // If the player hasn't picked up the key yet, prevent them from accessing the closed door
-                // You can add an alert or any other visual feedback to indicate that the door is locked
+                alert("The door seems locked...")
             } else {
                 // If the player has the key, allow them to access the closed door
                 this.scene.start("darkCaveScene", { lives: this.lives });
@@ -299,19 +289,15 @@ class EnchantedForest extends Phaser.Scene {
             }
         });
 
-        this.physics.add.overlap(this.player, this.coinGroup, () => {
-            //TODO: implement score system
-        });
-
         this.physics.add.overlap(this.player, this.chestGroup, () => {
             // Check if the character is currently vulnerable
             if (!this.weaponFlag) {
-                alert("You have got a new weapon. Press x to hit");
+                alert("You have got a new weapon. Hold x to hit");
                 this.weaponFlag = true;
             }
         });
 
-        // Check for collision between player character and snakes
+        // Check for collision between player and snakes
         this.physics.add.overlap(this.player, this.snakeGroup, this.playerHitBySnake, null, this);
 
         // Add overlap detection between player and portals
@@ -329,9 +315,7 @@ class EnchantedForest extends Phaser.Scene {
             }
         });
 
-
         this.rKey = this.input.keyboard.addKey('R');
-
     }
 
     killSnake(sword, snake) {
@@ -339,7 +323,7 @@ class EnchantedForest extends Phaser.Scene {
         this.physics.world.disableBody(snake.body);
         // Make the snake sprite invisible
         snake.setVisible(false);
-        // Optionally, you can also destroy the snake sprite
+        // Destroy the snake sprite
         snake.destroy();
         // Remove the snake from the snakes array
         const index = this.snakes.indexOf(snake);
@@ -347,7 +331,6 @@ class EnchantedForest extends Phaser.Scene {
             this.snakes.splice(index, 1);
         }
     }
-
 
     setRandomOrcMovement() {
         // Generate a random direction and speed
@@ -372,8 +355,8 @@ class EnchantedForest extends Phaser.Scene {
 
     setRandomAxeMovement() {
         // Define movement parameters
-        const moveDistance = 50; // Distance the axe will move away from the orc
-        const moveSpeed = 1000; // Speed of the movement in milliseconds
+        const moveDistance = 50; 
+        const moveSpeed = 1000;
 
         // Clear any existing tweens on the axe
         this.tweens.killTweensOf(this.axe);
@@ -479,8 +462,8 @@ class EnchantedForest extends Phaser.Scene {
 
     updateSwordPosition() {
         // Calculate sword position relative to the player's center
-        const swordOffsetX = this.player.flipX ? -2 : 10; // Distance from the player's center
-        const swordOffsetY = 5; // Adjust this value to position the sword vertically
+        const swordOffsetX = this.player.flipX ? -2 : 10; 
+        const swordOffsetY = 5; 
 
         // Update the sword position
         this.sword.x = this.player.x + swordOffsetX;
@@ -536,20 +519,19 @@ class EnchantedForest extends Phaser.Scene {
         });
 
         // Set a timer to change direction for each snake after a random interval
-        const randomInterval = Phaser.Math.Between(2000, 4000); // Increase the interval range for slower changes
+        const randomInterval = Phaser.Math.Between(2000, 4000);
         this.time.delayedCall(randomInterval, this.setRandomSnakeMovement, [], this);
     }
 
     setPortalCooldown() {
         this.portalCooldown = true;
         this.portalCooldownTimer = this.portalCooldownDuration;
-    
+
         // Reset the portal cooldown after the specified duration
         this.time.delayedCall(this.portalCooldownDuration, () => {
             this.portalCooldown = false;
         });
     }
-    
 
     tileXtoWorld(tileX) {
         return tileX * this.TILESIZE;

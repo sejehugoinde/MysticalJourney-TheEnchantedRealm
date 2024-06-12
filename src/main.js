@@ -1,20 +1,6 @@
-// Jim Whitehead
-// Created: 5/26/2024
+// Sandra Sorensen
+// Created: 6/6/2024
 // Phaser: 3.80.0
-//
-// Pathfinder demo
-//
-// An example of pathfinding in Phaser using the EasyStar.js pathfinder 
-// https://github.com/prettymuchbryce/easystarjs
-// 
-// Assets from the following Kenney Asset packs
-// Tiny Dungeon
-// https://kenney.nl/assets/tiny-dungeon
-//
-// Tiny Town
-// https://kenney.nl/assets/tiny-town
-//
-
 
 // game config
 let config = {

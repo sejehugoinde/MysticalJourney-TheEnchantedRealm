@@ -1,3 +1,7 @@
+// Sandra Sorensen
+// Created: 6/6/2024
+// Phaser: 3.80.0
+
 class Rules extends Phaser.Scene {
     constructor() {
         super("rulesScene");
@@ -20,15 +24,14 @@ class Rules extends Phaser.Scene {
         // Adjusting text positions and sizes
         const textStyle = { fontSize: 8 };
 
+        // Text in the game
         this.my.text.arrows = this.add.bitmapText(10, 50, "rocketSquare", "Use the arrows to move the character around", textStyle.fontSize);
-        this.my.text.spaceBar = this.add.bitmapText(10, 70, "rocketSquare", "Use the space-bar to make the character jump up", textStyle.fontSize);
-        this.my.text.weapon = this.add.bitmapText(10, 90, "rocketSquare", "If you equip a weapon then you can use x-key to hit", textStyle.fontSize);
-        this.my.text.worlds = this.add.bitmapText(10, 110, "rocketSquare", "You will have to go through three worlds in order to win the game.\nIn every world you get spawned as a new character", textStyle.fontSize);
-
-        this.my.text.arrows.setDepth(1); // Set depth to render above tilemap layers
-        this.my.text.spaceBar.setDepth(1); // Set depth to render above tilemap layers
-        this.my.text.weapon.setDepth(1); // Set depth to render above tilemap layers
-        this.my.text.worlds.setDepth(1); // Set depth to render above tilemap layers
+        this.my.text.arrows = this.add.bitmapText(10, 70, "rocketSquare", "Use r-key to restart in current level", textStyle.fontSize);
+        this.my.text.spaceBar = this.add.bitmapText(10, 90, "rocketSquare", "Use the space-bar to make the character jump up", textStyle.fontSize);
+        this.my.text.weapon = this.add.bitmapText(10, 110, "rocketSquare", "If you equip a weapon then hold x-key to hit", textStyle.fontSize);
+        this.my.text.worlds = this.add.bitmapText(10, 130, "rocketSquare", "You will have to go through three worlds\nin order to save the princess and win the game.\nIn every world you get spawned as a new character", textStyle.fontSize);
+        this.my.text.startGame = this.add.bitmapText(20, 215, "rocketSquare", "Play the game", textStyle.fontSize);
+        this.my.text.goBack = this.add.bitmapText(168, 215, "rocketSquare", "Go back", textStyle.fontSize);
 
         // Create a new tilemap which uses 16x16 tiles, and is 40 tiles wide and 25 tiles tall
         this.map = this.add.tilemap("rules", this.TILESIZE, this.TILESIZE, this.TILEHEIGHT, this.TILEWIDTH);
@@ -37,13 +40,13 @@ class Rules extends Phaser.Scene {
         // Add a tileset to the map
         this.tileset = this.map.addTilesetImage("kenney-tiny-town", "tilemap_tiles");
 
-        // Create townsfolk sprite
+        // Create player sprite
         // Use setOrigin() to ensure the tile space computations work well
-        this.my.sprite.purpleTownie = this.add.sprite(this.tileXtoWorld(5), this.tileYtoWorld(5), "purple").setOrigin(0, 0);
+        this.my.sprite.player = this.add.sprite(this.tileXtoWorld(1), this.tileYtoWorld(1), "purple").setOrigin(0, 0);
 
         // Enable physics for the sprite without debug visuals
-        this.physics.add.existing(this.my.sprite.purpleTownie);
-        this.my.sprite.purpleTownie.body.setCollideWorldBounds(true);
+        this.physics.add.existing(this.my.sprite.player);
+        this.my.sprite.player.body.setCollideWorldBounds(true);
 
         // Camera settings
         this.cameras.main.setBounds(0, 0, this.map.widthInPixels, this.map.heightInPixels);
@@ -51,10 +54,10 @@ class Rules extends Phaser.Scene {
         this.cameras.main.setZoom(this.SCALE);
 
         // Add camera follow to the sprite
-        this.cameras.main.startFollow(this.my.sprite.purpleTownie, true, 0.25, 0.25); // (target, [,roundPixels][,lerpX][,lerpY])
+        this.cameras.main.startFollow(this.my.sprite.player, true, 0.25, 0.25); // (target, [,roundPixels][,lerpX][,lerpY])
         this.cameras.main.setDeadzone(50, 50);
 
-        this.activeCharacter = this.my.sprite.purpleTownie;
+        this.activeCharacter = this.my.sprite.player;
 
         // Add key handlers for arrow keys
         this.cursors = this.input.keyboard.createCursorKeys();
@@ -70,29 +73,29 @@ class Rules extends Phaser.Scene {
             key: "tilemap_sheet",
             frame: 10
         });
-        this.learnRulesRight = this.map.createFromObjects("Objects", {
-            name: "learnRulesRight",
+        this.goBackRight = this.map.createFromObjects("Objects", {
+            name: "goBackRight",
             key: "tilemap_sheet",
             frame: 10
         });
-        this.learnRulesLeft = this.map.createFromObjects("Objects", {
-            name: "learnRulesLeft",
+        this.goBackLeft = this.map.createFromObjects("Objects", {
+            name: "goBackLeft",
             key: "tilemap_sheet",
             frame: 11
         });
 
         // Enable collision handling
-        this.physics.world.enable(this.learnRulesRight, Phaser.Physics.Arcade.STATIC_BODY);
-        this.physics.world.enable(this.learnRulesLeft, Phaser.Physics.Arcade.STATIC_BODY);
         this.physics.world.enable(this.startGameLeft, Phaser.Physics.Arcade.STATIC_BODY);
         this.physics.world.enable(this.startGameRight, Phaser.Physics.Arcade.STATIC_BODY);
+        this.physics.world.enable(this.goBackRight, Phaser.Physics.Arcade.STATIC_BODY);
+        this.physics.world.enable(this.goBackLeft, Phaser.Physics.Arcade.STATIC_BODY);
 
-        this.physics.add.overlap(this.activeCharacter, this.learnRulesRight, (obj1, obj2) => {
-            this.scene.start("enchantedForestScene");
+        this.physics.add.overlap(this.activeCharacter, this.goBackRight, (obj1, obj2) => {
+            this.scene.start("startScene");
         });
 
-        this.physics.add.overlap(this.activeCharacter, this.learnRulesLeft, (obj1, obj2) => {
-            this.scene.start("enchantedForestScene");
+        this.physics.add.overlap(this.activeCharacter, this.goBackLeft, (obj1, obj2) => {
+            this.scene.start("startScene");
         });
 
         this.physics.add.overlap(this.activeCharacter, this.startGameLeft, (obj1, obj2) => {
@@ -109,7 +112,7 @@ class Rules extends Phaser.Scene {
         // Reset velocity
         this.activeCharacter.body.setVelocity(0);
 
-        if(this.cursors.space.isDown) {
+        if (this.cursors.space.isDown) {
             this.activeCharacter.body.setVelocityY(-80);
         }
 

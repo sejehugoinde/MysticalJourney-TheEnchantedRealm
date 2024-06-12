@@ -1,3 +1,7 @@
+// Sandra Sorensen
+// Created: 6/6/2024
+// Phaser: 3.80.0
+
 class Start extends Phaser.Scene {
     constructor() {
         super("startScene");
@@ -17,42 +21,45 @@ class Start extends Phaser.Scene {
     }
 
     create() {
-        // Adjusting text positions and sizes
+        // Text in the game
+        this.my.text.welcomeGame1 = this.add.bitmapText(100, 40, "rocketSquare", "Welcome to:");
+        this.my.text.welcomeGame1.setFontSize(10);
+
+        this.my.text.welcomeGame2 = this.add.bitmapText(10, 50, "rocketSquare", "Mystical Journey: The Enchanted Realm");
+        this.my.text.welcomeGame2.setFontSize(10);
+
         this.my.text.startGame = this.add.bitmapText(10, 100, "rocketSquare", "Play the game");
-        this.my.text.startGame.setFontSize(8); // Set the font size to a smaller value
-        this.my.text.startGame.setDepth(1); // Set depth to render above tilemap layers
+        this.my.text.startGame.setFontSize(8);
 
-        // Position "Learn the rules" to the right of "Play the game"
         const startGameWidth = this.my.text.startGame.width;
-        this.my.text.learnRules = this.add.bitmapText(10 + startGameWidth + 30, 100, "rocketSquare", "Learn the rules of the game"); // 20 pixels right
-        this.my.text.learnRules.setFontSize(8); // Set the font size to a smaller value
-        this.my.text.learnRules.setDepth(1); // Set depth to render above tilemap layers
+        this.my.text.learnRules = this.add.bitmapText(10 + startGameWidth + 30, 100, "rocketSquare", "Learn the rules of the game");
+        this.my.text.learnRules.setFontSize(8); 
 
-        // Create a new tilemap which uses 16x16 tiles, and is 40 tiles wide and 25 tiles tall
+        // Create a new tilemap
         this.map = this.add.tilemap("start", this.TILESIZE, this.TILESIZE, this.TILEHEIGHT, this.TILEWIDTH);
         this.physics.world.setBounds(0, 0, 200 * 18, 25 * 18);
 
         // Add a tileset to the map
         this.tileset = this.map.addTilesetImage("kenney-tiny-town", "tilemap_tiles");
 
-        // Create townsfolk sprite
+        // Create player sprite
         // Use setOrigin() to ensure the tile space computations work well
-        this.my.sprite.purpleTownie = this.add.sprite(this.tileXtoWorld(5), this.tileYtoWorld(5), "purple").setOrigin(0, 0);
+        this.my.sprite.player = this.add.sprite(this.tileXtoWorld(6), this.tileYtoWorld(5), "purple").setOrigin(0, 0);
 
         // Enable physics for the sprite without debug visuals
-        this.physics.add.existing(this.my.sprite.purpleTownie);
-        this.my.sprite.purpleTownie.body.setCollideWorldBounds(true);
+        this.physics.add.existing(this.my.sprite.player);
+        this.my.sprite.player.body.setCollideWorldBounds(true);
 
         // Camera settings
         this.cameras.main.setBounds(0, 0, this.map.widthInPixels, this.map.heightInPixels);
-        this.cameras.main.setSize(config.width, config.height); // Set camera size to match the game config
-        this.cameras.main.setZoom(this.SCALE);
+        this.cameras.main.setSize(config.width, config.height);
+        this.cameras.main.setZoom(2);
 
         // Add camera follow to the sprite
-        this.cameras.main.startFollow(this.my.sprite.purpleTownie, true, 0.25, 0.25); // (target, [,roundPixels][,lerpX][,lerpY])
+        this.cameras.main.startFollow(this.my.sprite.player, true, 0.25, 0.25); // (target, [,roundPixels][,lerpX][,lerpY])
         this.cameras.main.setDeadzone(50, 50);
 
-        this.activeCharacter = this.my.sprite.purpleTownie;
+        this.activeCharacter = this.my.sprite.player;
 
         // Add key handlers for arrow keys
         this.cursors = this.input.keyboard.createCursorKeys();

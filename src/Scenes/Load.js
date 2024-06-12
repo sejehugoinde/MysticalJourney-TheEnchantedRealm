@@ -1,3 +1,7 @@
+// Sandra Sorensen
+// Created: 6/6/2024
+// Phaser: 3.80.0
+
 class Load extends Phaser.Scene {
     constructor() {
         super("loadScene");
@@ -59,7 +63,7 @@ class Load extends Phaser.Scene {
 
     create() {
         
-         this.scene.start("darkCaveScene");
+         this.scene.start("endScene");
     }
 
 }

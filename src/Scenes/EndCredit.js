@@ -1,3 +1,7 @@
+// Sandra Sorensen
+// Created: 6/6/2024
+// Phaser: 3.80.0
+
 class EndCredit extends Phaser.Scene {
     constructor() {
         super("endScene");
@@ -17,42 +21,36 @@ class EndCredit extends Phaser.Scene {
     }
 
     create() {
-        // Adjusting text positions and sizes
-        this.my.text.startGame = this.add.bitmapText(30, 140, "rocketSquare", "Play the game again");
-        this.my.text.startGame.setFontSize(8); // Set the font size to a smaller value
-        this.my.text.startGame.setDepth(1); // Set depth to render above tilemap layers
+        // Text in scene
+        this.my.text.startGame = this.add.bitmapText(15, 210, "rocketSquare", "Play the game again");
+        this.my.text.startGame.setFontSize(8); 
+        this.my.text.learnRules = this.add.bitmapText(160, 210, "rocketSquare", "Go back to the start");
+        this.my.text.learnRules.setFontSize(8);
 
-        // Position "Learn the rules" below "Play the game"
-        const startGameHeight = this.my.text.startGame.height;
-        this.my.text.learnRules = this.add.bitmapText(150, 140, "rocketSquare", "Learn the rules of the game");
-        this.my.text.learnRules.setFontSize(8); // Set the font size to a smaller value
-        this.my.text.learnRules.setDepth(1); // Set depth to render above tilemap layers
-
-        // Create a new tilemap which uses 16x16 tiles, and is 40 tiles wide and 25 tiles tall
+        // Create a new tilemap
         this.map = this.add.tilemap("end", this.TILESIZE, this.TILESIZE, this.TILEHEIGHT, this.TILEWIDTH);
         this.physics.world.setBounds(0, 0, 200 * 18, 25 * 18);
 
         // Add a tileset to the map
         this.tileset = this.map.addTilesetImage("kenney-tiny-town", "tilemap_tiles");
 
-        // Create townsfolk sprite
-        // Use setOrigin() to ensure the tile space computations work well
-        this.my.sprite.purpleTownie = this.add.sprite(this.tileXtoWorld(5), this.tileYtoWorld(5), "purple").setOrigin(0, 0);
+        // Create player sprite
+        this.my.sprite.player = this.add.sprite(this.tileXtoWorld(5), this.tileYtoWorld(5), "purple").setOrigin(0, 0);
 
         // Enable physics for the sprite without debug visuals
-        this.physics.add.existing(this.my.sprite.purpleTownie);
-        this.my.sprite.purpleTownie.body.setCollideWorldBounds(true);
+        this.physics.add.existing(this.my.sprite.player);
+        this.my.sprite.player.body.setCollideWorldBounds(true);
 
         // Camera settings
         this.cameras.main.setBounds(0, 0, this.map.widthInPixels, this.map.heightInPixels);
-        this.cameras.main.setSize(config.width, config.height); // Set camera size to match the game config
+        this.cameras.main.setSize(config.width, config.height); 
         this.cameras.main.setZoom(this.SCALE);
 
         // Add camera follow to the sprite
-        this.cameras.main.startFollow(this.my.sprite.purpleTownie, true, 0.25, 0.25); // (target, [,roundPixels][,lerpX][,lerpY])
+        this.cameras.main.startFollow(this.my.sprite.player, true, 0.25, 0.25); 
         this.cameras.main.setDeadzone(50, 50);
 
-        this.activeCharacter = this.my.sprite.purpleTownie;
+        this.activeCharacter = this.my.sprite.player;
 
         // Add key handlers for arrow keys
         this.cursors = this.input.keyboard.createCursorKeys();
@@ -68,29 +66,29 @@ class EndCredit extends Phaser.Scene {
             key: "tilemap_sheet",
             frame: 10
         });
-        this.learnRulesRight = this.map.createFromObjects("Objects", {
-            name: "learnRulesRight",
-            key: "tilemap_sheet",
-            frame: 10
-        });
-        this.learnRulesLeft = this.map.createFromObjects("Objects", {
-            name: "learnRulesLeft",
+        this.backToStartLeft = this.map.createFromObjects("Objects", {
+            name: "backToStartLeft",
             key: "tilemap_sheet",
             frame: 11
         });
+        this.backToStartRight = this.map.createFromObjects("Objects", {
+            name: "backToStartRight",
+            key: "tilemap_sheet",
+            frame: 10
+        });
 
         // Enable collision handling
-        this.physics.world.enable(this.learnRulesRight, Phaser.Physics.Arcade.STATIC_BODY);
-        this.physics.world.enable(this.learnRulesLeft, Phaser.Physics.Arcade.STATIC_BODY);
+        this.physics.world.enable(this.backToStartRight, Phaser.Physics.Arcade.STATIC_BODY);
+        this.physics.world.enable(this.backToStartLeft, Phaser.Physics.Arcade.STATIC_BODY);
         this.physics.world.enable(this.startGameLeft, Phaser.Physics.Arcade.STATIC_BODY);
         this.physics.world.enable(this.startGameRight, Phaser.Physics.Arcade.STATIC_BODY);
 
-        this.physics.add.overlap(this.activeCharacter, this.learnRulesRight, (obj1, obj2) => {
-            this.scene.start("rulesScene");
+        this.physics.add.overlap(this.activeCharacter, this.backToStartRight, (obj1, obj2) => {
+            this.scene.start("startScene");
         });
 
-        this.physics.add.overlap(this.activeCharacter, this.learnRulesLeft, (obj1, obj2) => {
-            this.scene.start("rulesScene");
+        this.physics.add.overlap(this.activeCharacter, this.backToStartLeft, (obj1, obj2) => {
+            this.scene.start("startScene");
         });
 
         this.physics.add.overlap(this.activeCharacter, this.startGameLeft, (obj1, obj2) => {

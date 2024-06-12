@@ -1,3 +1,7 @@
+// Sandra Sorensen
+// Created: 6/6/2024
+// Phaser: 3.80.0
+
 class MysticalCastle extends Phaser.Scene {
     constructor() {
         super("mysticalCastleScene");
@@ -15,32 +19,27 @@ class MysticalCastle extends Phaser.Scene {
     }
 
     create(data) {
-        //CONDITIONALS
         this.lives = data.lives;
         this.keyFlag = false;
         this.isSwordHit = false;
         this.weaponFlag = false;
         this.isVulnerable = true;
-        this.isVulnerableGiant = true;
+        this.isVulnerableWizard = true;
         this.isXKeyDown = false;
         this.lives = 5;
         this.enemySpeed = 5;
-        this.giantLives = 3;
+        this.wizardLives = 3;
 
         this.lives = data.lives;
         if (this.lives == null) {
             this.lives = 2
         }
 
-        // CREATE GROUPS
+        // Create groups
         this.wizardGroup = this.add.group();
         this.heartsGroup = this.add.group();
         this.heartsWizardGroup = this.add.group();
         this.ghostWizardGroup = this.add.group();
-
-        // Create an array to hold all the ghost wizards
-        this.ghostWizards = [];
-        this.numGhostWizards = 10;
 
         // Create a new tilemap which uses 16x16 tiles, and is 40 tiles wide and 25 tiles tall
         this.map = this.add.tilemap("mysticalCastle", this.TILESIZE, this.TILESIZE, this.TILEHEIGHT, this.TILEWIDTH);
@@ -56,8 +55,7 @@ class MysticalCastle extends Phaser.Scene {
         this.groundLayer.setCollisionByProperty({ collides: true });
         this.castleLayer.setCollisionByProperty({ collides: true });
 
-        // ENEMY RELATED
-        // wizard
+        // Creating the enemy wizard
         this.wizard = this.physics.add.sprite(this.tileXtoWorld(25), this.tileYtoWorld(15), "wizardMysticalCastle").setOrigin(0, 0);
         this.wizard.setScale(2);
         this.wizardGroup.add(this.wizard);
@@ -81,13 +79,16 @@ class MysticalCastle extends Phaser.Scene {
 
         // Add this to the create method to repeat wizardWandMagic throwing every 3 seconds
         this.time.addEvent({
-            delay: 3000, // 3 seconds
+            delay: 3000,
             callback: this.setRandomWizardWandMagicMovement,
             callbackScope: this,
             loop: true
         });
 
-        // ghost wizard
+        // Create an array to hold all the ghost wizards
+        this.ghostWizards = [];
+        this.numGhostWizards = 10;
+
         // Define the spawn area along the edges of the map
         const spawnArea = {
             top: this.map.heightInPixels * 0.2, // 20% from the top
@@ -123,9 +124,7 @@ class MysticalCastle extends Phaser.Scene {
             this.ghostWizardGroup.add(this.ghostWizard);
         }
 
-        this.ghostWizardGroup.setDepth(0);
-
-        // // Set up random movement for each snake
+        // Set up random movement for each snake
         this.setRandomGhostWizardMovement();
 
         // Set up initial visibility for ghost wizards
@@ -133,13 +132,12 @@ class MysticalCastle extends Phaser.Scene {
 
         // Schedule a repeating event to toggle visibility every few seconds
         this.time.addEvent({
-            delay: 2000, // Adjust the delay as needed
+            delay: 2000,
             callback: this.toggleGhostWizardsVisibility,
             callbackScope: this,
             loop: true
         });
 
-        // PLAYER RELATED
         // Use setOrigin() to ensure the tile space computations work well
         this.player = this.add.sprite(this.tileXtoWorld(1), this.tileYtoWorld(1), "purple").setOrigin(0, 0);
 
@@ -230,7 +228,7 @@ class MysticalCastle extends Phaser.Scene {
             frame: 82
         })
 
-        // ENABLE COLLISION HANDLING    
+        // Enabling the physics bodies 
         this.physics.world.enable(this.princess, Phaser.Physics.Arcade.STATIC_BODY);
         this.physics.world.enable(this.lockedDoor, Phaser.Physics.Arcade.STATIC_BODY);
         this.physics.world.enable(this.chestTongue, Phaser.Physics.Arcade.STATIC_BODY);
@@ -252,16 +250,15 @@ class MysticalCastle extends Phaser.Scene {
             ease: 'Sine.easeInOut'
         });
 
-        // Enable collision handling
+        // Enable overlaps in game
         this.physics.add.overlap(this.player, this.princess, (obj1, obj2) => {
             this.scene.start("endScene");
         });
 
-        // Enable collision handling
         this.physics.add.overlap(this.player, this.chestTongue, (obj1, obj2) => {
             // Check if the character is currently vulnerable
             if (this.isVulnerable) {
-                // Remove a heart when the character is hit by an giantSword
+                // Remove a heart when the character is hit by an wizardSword
                 this.removeHeart();
                 // Set the character as not vulnerable and start the cooldown timer
                 this.isVulnerable = false;
@@ -275,7 +272,6 @@ class MysticalCastle extends Phaser.Scene {
             }
         });
 
-        //OVERLAPS
         this.physics.add.overlap(this.sword, this.ghostWizardGroup, this.killGhostWizard, null, this);
         this.physics.add.overlap(this.player, this.ghostWizardGroup, this.playerHitByGhostWizard, null, this);
         
@@ -288,7 +284,7 @@ class MysticalCastle extends Phaser.Scene {
         this.physics.add.overlap(this.player, this.wizardWand, () => {
             // Check if the character is currently vulnerable
             if (this.isVulnerable) {
-                // Remove a heart when the character is hit by an giantSword
+                // Remove a heart when the character is hit by an wizardSword
                 this.removeHeart();
                 // Set the character as not vulnerable and start the cooldown timer
                 this.isVulnerable = false;
@@ -305,7 +301,7 @@ class MysticalCastle extends Phaser.Scene {
         this.physics.add.overlap(this.player, this.wizardWandMagic, () => {
             // Check if the character is currently vulnerable
             if (this.isVulnerable) {
-                // Remove a heart when the character is hit by an giantSword
+                // Remove a heart when the character is hit by an wizardSword
                 this.removeHeart();
                 // Set the character as not vulnerable and start the cooldown timer
                 this.isVulnerable = false;
@@ -321,30 +317,30 @@ class MysticalCastle extends Phaser.Scene {
 
         this.physics.add.overlap(this.sword, this.wizard, () => {
             if (!this.isSwordHit) {
-                // Check if the giant is currently vulnerable
-                if (this.isVulnerableGiant) {
-                    // Remove a heart when the giant is hit by the player's sword
+                // Check if the wizard is currently vulnerable
+                if (this.isVulnerableWizard) {
+                    // Remove a heart when the wizard is hit by the player's sword
                     this.removeWizardHeart();
-                    // Set the giant as not vulnerable and start the cooldown timer
-                    this.isVulnerableGiant = false;
+                    // Set the wizard as not vulnerable and start the cooldown timer
+                    this.isVulnerableWizard = false;
                     this.time.delayedCall(1000, () => {
-                        this.isVulnerableGiant = true;
+                        this.isVulnerableWizard = true;
                     });
-                    // Restart the scene when all giant's hearts are gone
+                    // Restart the scene when all wizard's hearts are gone
                     if (this.heartsWizardGroup.getLength() === 0) {
-                        // Disable physics for each object in the giant group
+                        // Disable physics for each object in the wizard group
                         this.wizardGroup.children.iterate(child => {
                             this.physics.world.disableBody(child.body);
                         });
 
-                        // Make the giant group invisible
+                        // Make the wizard group invisible
                         this.wizardGroup.setVisible(false);
 
                         //TODO: Change this
                         this.keyFlag = true;
                     }
                 }
-                this.isSwordHit = true; // Set the flag to true to indicate that the sword has hit the giant
+                this.isSwordHit = true; // Set the flag to true to indicate that the sword has hit the wizard
             }
         });
 
@@ -366,8 +362,6 @@ class MysticalCastle extends Phaser.Scene {
                 });
             }
         });
-
-        // KEY LISTENING
 
         // Listen for "X" key press event
         this.input.keyboard.on('keydown-X', () => {
@@ -497,7 +491,6 @@ class MysticalCastle extends Phaser.Scene {
         });
     }
 
-
     setRandomWizardMovement() {
         // Generate a random direction and speed
         const directions = [
@@ -542,9 +535,8 @@ class MysticalCastle extends Phaser.Scene {
         this.sword.y = this.player.y + swordOffsetY;
 
         if (!this.physics.overlap(this.sword, this.wizard)) {
-            this.isSwordHit = false; // Reset the flag if the sword is not overlapping with the giant
+            this.isSwordHit = false; // Reset the flag if the sword is not overlapping with the wizard
         }
-        
     }
 
     setRandomGhostWizardMovement() {
@@ -559,7 +551,7 @@ class MysticalCastle extends Phaser.Scene {
             ];
             const randomDirection = Phaser.Math.RND.pick(directions);
 
-            // Set velocity for each ghostWizard based on the orc speed
+            // Set velocity for each ghostWizard based on the wizard ghosts speed
             const velocityX = randomDirection.x * this.enemySpeed + 2;
             const velocityY = randomDirection.y * this.enemySpeed + 2;
             ghostWizard.setVelocity(velocityX, velocityY);
@@ -575,7 +567,7 @@ class MysticalCastle extends Phaser.Scene {
         this.physics.world.disableBody(ghostWizard.body);
         // Make the ghostWizard sprite invisible
         ghostWizard.setVisible(false);
-        // Optionally, you can also destroy the ghostWizard sprite
+        // Destroy the ghostWizard sprite
         ghostWizard.destroy();
         // Remove the ghostWizard from the ghostWizards array
         const index = this.ghostWizards.indexOf(ghostWizard);
