@@ -1,4 +1,4 @@
-class End extends Phaser.Scene {
+class EndCredit extends Phaser.Scene {
     constructor() {
         super("endScene");
         this.my = { sprite: {}, text: {} };
@@ -18,13 +18,13 @@ class End extends Phaser.Scene {
 
     create() {
         // Adjusting text positions and sizes
-        this.my.text.startGame = this.add.bitmapText(10, 100, "rocketSquare", "Play the game again");
+        this.my.text.startGame = this.add.bitmapText(30, 140, "rocketSquare", "Play the game again");
         this.my.text.startGame.setFontSize(8); // Set the font size to a smaller value
         this.my.text.startGame.setDepth(1); // Set depth to render above tilemap layers
 
-        // Position "Learn the rules" to the right of "Play the game"
-        const startGameWidth = this.my.text.startGame.width;
-        this.my.text.learnRules = this.add.bitmapText(10 + startGameWidth + 20, 100, "rocketSquare", "Learn the rules of the game"); // 20 pixels right
+        // Position "Learn the rules" below "Play the game"
+        const startGameHeight = this.my.text.startGame.height;
+        this.my.text.learnRules = this.add.bitmapText(150, 140, "rocketSquare", "Learn the rules of the game");
         this.my.text.learnRules.setFontSize(8); // Set the font size to a smaller value
         this.my.text.learnRules.setDepth(1); // Set depth to render above tilemap layers
 
@@ -34,9 +34,6 @@ class End extends Phaser.Scene {
 
         // Add a tileset to the map
         this.tileset = this.map.addTilesetImage("kenney-tiny-town", "tilemap_tiles");
-
-        // Create the layers
-        this.groundLayer = this.map.createLayer("Ground-n-Walkways", this.tileset, 0, 0);
 
         // Create townsfolk sprite
         // Use setOrigin() to ensure the tile space computations work well
@@ -49,7 +46,7 @@ class End extends Phaser.Scene {
         // Camera settings
         this.cameras.main.setBounds(0, 0, this.map.widthInPixels, this.map.heightInPixels);
         this.cameras.main.setSize(config.width, config.height); // Set camera size to match the game config
-        this.cameras.main.setZoom(3);
+        this.cameras.main.setZoom(this.SCALE);
 
         // Add camera follow to the sprite
         this.cameras.main.startFollow(this.my.sprite.purpleTownie, true, 0.25, 0.25); // (target, [,roundPixels][,lerpX][,lerpY])
@@ -104,13 +101,27 @@ class End extends Phaser.Scene {
             this.scene.start("enchantedForestScene");
         });
 
+        // Add title text
+        this.add.bitmapText(10, 10, 'rocketSquare', 'Credits', 16);
+
+        // Add credits text
+        const creditsText = `
+        Game Design: Sandra Sorensen
+        Programming: Sandra Sorensen
+        Assets: Kenny
+        Music: Kenny
+        Special Thanks: Professor Jim Whitehead 
+        Code snippets from course
+        `;
+
+        this.add.bitmapText(10, 40, 'rocketSquare', creditsText, 8);
     }
 
     update() {
         // Reset velocity
         this.activeCharacter.body.setVelocity(0);
 
-        if(this.cursors.space.isDown) {
+        if (this.cursors.space.isDown) {
             this.activeCharacter.body.setVelocityY(-80);
         }
 

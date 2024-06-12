@@ -15,7 +15,38 @@ class MysticalCastle extends Phaser.Scene {
     }
 
     create(data) {
+        //CONDITIONALS
         this.lives = data.lives;
+        this.keyFlag = true;
+        this.isSwordHit = false;
+        this.weaponFlag = true;
+        this.isVulnerable = true;
+        this.isVulnerableGiant = true;
+        this.isXKeyDown = false;
+        this.lives = 5;
+        this.enemySpeed = 5;
+        this.giantLives = 3;
+
+        this.lives = data.lives;
+        if (this.lives == null) {
+            this.lives = 2
+        }
+
+        // CREATE GROUPS
+        this.wizardGroup = this.add.group();
+        this.heartsGroup = this.add.group();
+        this.heartsWizardGroup = this.add.group();
+        this.ghostWizardGroup = this.add.group();
+
+        // Create an array to hold all the ghost wizards
+        this.ghostWizards = [];
+        this.numGhostWizards = 10;
+
+        // LIVES
+        for (let i = 0; i < this.lives; i++) {
+            const heart = this.add.sprite(20 + i * 20, 20, "fullHeartMysticalCastle").setOrigin(0.5, 0.5);
+            this.heartsGroup.add(heart);
+        }
 
         // Create a new tilemap which uses 16x16 tiles, and is 40 tiles wide and 25 tiles tall
         this.map = this.add.tilemap("mysticalCastle", this.TILESIZE, this.TILESIZE, this.TILEHEIGHT, this.TILEWIDTH);
@@ -26,15 +57,106 @@ class MysticalCastle extends Phaser.Scene {
 
         // Create the layers
         this.groundLayer = this.map.createLayer("Ground-n-Walkways", this.tileset, 0, 0);
-        this.groundLayer = this.map.createLayer("Castle", this.tileset, 0, 0);
+        this.castleLayer = this.map.createLayer("Castle", this.tileset, 0, 0);
 
-        // Create townsfolk sprite
+        this.groundLayer.setCollisionByProperty({ collides: true });
+        this.castleLayer.setCollisionByProperty({ collides: true });
+
+        // ENEMY RELATED
+        // wizard
+        this.wizard = this.physics.add.sprite(this.tileXtoWorld(25), this.tileYtoWorld(15), "wizardMysticalCastle").setOrigin(0, 0);
+        this.wizard.setScale(2);
+        this.wizardGroup.add(this.wizard);
+
+        const wandOffsetX = -5;
+        const wandOffsetY = 15;
+        this.wizardWand = this.physics.add.sprite(this.wizard.x + wandOffsetX, this.wizard.y + wandOffsetY, "wizardWand").setOrigin(0.5, 0.5);
+        this.wizardWand.setCollideWorldBounds(true);
+        this.wizardWand.setScale(1.5);
+        this.wizardWand.angle = -10;
+        this.wizardGroup.add(this.wizardWand);
+
+        this.wizardWandMagic = this.physics.add.sprite(this.wizard.x, this.wizard.y, "wizardWandMagic").setOrigin(0.5, 0.5);
+        this.wizardWandMagic.setCollideWorldBounds(true);
+        this.wizardWandMagic.setScale(1.5);
+        this.wizardGroup.add(this.wizardWandMagic)
+
+        this.wizardSpeed = 5;
+        this.setRandomWizardMovement();
+        this.setRandomWizardWandMagicMovement();
+
+        // Add this to the create method to repeat wizardWandMagic throwing every 3 seconds
+        this.time.addEvent({
+            delay: 3000, // 3 seconds
+            callback: this.setRandomWizardWandMagicMovement,
+            callbackScope: this,
+            loop: true
+        });
+
+        // ghost wizard
+        // Define the spawn area along the edges of the map
+        const spawnArea = {
+            top: this.map.heightInPixels * 0.2, // 20% from the top
+            bottom: this.map.heightInPixels * 0.8, // 20% from the bottom
+            left: this.map.widthInPixels * 0.2, // 20% from the left
+            right: this.map.widthInPixels * 0.8 // 20% from the right
+        };
+
+        // Create multiple ghost wizards sprites and add them to the ghost wizard group
+        for (let i = 0; i < this.numGhostWizards; i++) {
+            let x, y;
+            if (i % 4 === 0) {
+                // Spawn from the top edge
+                x = Phaser.Math.Between(spawnArea.left, spawnArea.right);
+                y = spawnArea.top;
+            } else if (i % 4 === 1) {
+                // Spawn from the bottom edge
+                x = Phaser.Math.Between(spawnArea.left, spawnArea.right);
+                y = spawnArea.bottom;
+            } else if (i % 4 === 2) {
+                // Spawn from the left edge
+                x = spawnArea.left;
+                y = Phaser.Math.Between(spawnArea.top, spawnArea.bottom);
+            } else {
+                // Spawn from the right edge
+                x = spawnArea.right;
+                y = Phaser.Math.Between(spawnArea.top, spawnArea.bottom);
+            }
+
+            this.ghostWizard = this.physics.add.sprite(x, y, "ghostWizard").setOrigin(0, 0);
+            this.ghostWizard.setScale(1);
+            this.ghostWizards.push(this.ghostWizard);
+            this.ghostWizardGroup.add(this.ghostWizard);
+        }
+
+        this.ghostWizardGroup.setDepth(0);
+
+        // // Set up random movement for each snake
+        this.setRandomGhostWizardMovement();
+
+        // Set up initial visibility for ghost wizards
+        // this.toggleGhostWizardsVisibility();
+
+        // // Schedule a repeating event to toggle visibility every few seconds
+        // this.time.addEvent({
+        //     delay: 2000, // Adjust the delay as needed
+        //     callback: this.toggleGhostWizardsVisibility,
+        //     callbackScope: this,
+        //     loop: true
+        // });
+
+        // PLAYER RELATED
         // Use setOrigin() to ensure the tile space computations work well
-        this.purpleTownie = this.add.sprite(this.tileXtoWorld(5), this.tileYtoWorld(5), "purple").setOrigin(0, 0);
+        this.player = this.add.sprite(this.tileXtoWorld(10), this.tileYtoWorld(10), "purple").setOrigin(0, 0);
 
         // Enable physics for the sprite without debug visuals
-        this.physics.add.existing(this.purpleTownie);
-        this.purpleTownie.body.setCollideWorldBounds(true);
+        this.physics.add.existing(this.player);
+        this.player.body.setCollideWorldBounds(true);
+
+        // Create sword sprite using a frame from the spritesheet
+        this.sword = this.physics.add.sprite(0, 0, "swordDarkCave").setOrigin(0.5, 0.5);
+        this.sword.setCollideWorldBounds(true);
+        this.sword.setScale(1);
 
         this.heartsGroup = this.add.group();
 
@@ -43,6 +165,11 @@ class MysticalCastle extends Phaser.Scene {
             const heart = this.physics.add.sprite(20 + i * 20, 20, "fullHeartMysticalCastle").setOrigin(0.5, 0.5);
             this.heartsGroup.add(heart);
         }
+
+        // Enable collision handling
+        this.physics.add.collider(this.player, this.groundLayer);
+        this.physics.add.collider(this.sword, this.groundLayer);
+        this.physics.add.collider(this.player, this.castleLayer);
 
         // Creating speaking bubble for the princess
         this.speakingBubble = this.add.sprite(this.tileXtoWorld(36), this.tileYtoWorld(6), "speakingBubble").setOrigin(0, 0);
@@ -67,13 +194,13 @@ class MysticalCastle extends Phaser.Scene {
         // Camera settings
         this.cameras.main.setBounds(0, 0, this.map.widthInPixels, this.map.heightInPixels);
         this.cameras.main.setSize(config.width, config.height); // Set camera size to match the game config
-        this.cameras.main.setZoom(3);
+        this.cameras.main.setZoom(1);
 
         // Add camera follow to the sprite
-        this.cameras.main.startFollow(this.purpleTownie, true, 0.25, 0.25); // (target, [,roundPixels][,lerpX][,lerpY])
+        this.cameras.main.startFollow(this.player, true, 0.25, 0.25); // (target, [,roundPixels][,lerpX][,lerpY])
         this.cameras.main.setDeadzone(50, 50);
 
-        this.activeCharacter = this.purpleTownie;
+        this.activeCharacter = this.player;
 
         // Add key handlers for arrow keys
         this.cursors = this.input.keyboard.createCursorKeys();
@@ -84,6 +211,16 @@ class MysticalCastle extends Phaser.Scene {
             key: "tilemap_sheet",
             frame: 99
         });
+
+        this.lockedDoor = this.map.createFromObjects("Objects", {
+            name: "lockedDoor",
+            key: "tilemap_sheet",
+            frame: 45
+        })
+
+        // ENABLE COLLISION HANDLING    
+        this.physics.world.enable(this.princess, Phaser.Physics.Arcade.STATIC_BODY);
+        this.physics.world.enable(this.lockedDoor, Phaser.Physics.Arcade.STATIC_BODY);
 
         // Convert this.princess to a Phaser GameObject
         if (this.princess.length > 0) {
@@ -102,9 +239,126 @@ class MysticalCastle extends Phaser.Scene {
         });
 
         // Enable collision handling
-        this.physics.add.overlap(this.purpleTownie, this.princess, (obj1, obj2) => {
+        this.physics.add.overlap(this.player, this.princess, (obj1, obj2) => {
             this.scene.start("endScene");
         });
+
+        //OVERLAPS
+        this.physics.add.overlap(this.sword, this.wizardGroup, this.killGhostWizard, null, this);
+
+        this.physics.add.overlap(this.player, this.wizardWand, () => {
+            // Check if the character is currently vulnerable
+            if (this.isVulnerable) {
+                // Remove a heart when the character is hit by an giantSword
+                this.removeHeart();
+                // Set the character as not vulnerable and start the cooldown timer
+                this.isVulnerable = false;
+                this.time.delayedCall(1000, () => {
+                    this.isVulnerable = true;
+                });
+                // Restart the scene when all hearts are gone
+                if (this.heartsGroup.getLength() === 0) {
+                    this.scene.restart();
+                }
+            }
+        });
+
+        this.physics.add.overlap(this.player, this.wizardWandMagic, () => {
+            // Check if the character is currently vulnerable
+            if (this.isVulnerable) {
+                // Remove a heart when the character is hit by an giantSword
+                this.removeHeart();
+                // Set the character as not vulnerable and start the cooldown timer
+                this.isVulnerable = false;
+                this.time.delayedCall(1000, () => {
+                    this.isVulnerable = true;
+                });
+                // Restart the scene when all hearts are gone
+                if (this.heartsGroup.getLength() === 0) {
+                    this.scene.restart();
+                }
+            }
+        });
+
+        this.physics.add.overlap(this.sword, this.wizard, () => {
+            if (!this.isSwordHit) {
+                // Check if the giant is currently vulnerable
+                if (this.isVulnerableGiant) {
+                    // Remove a heart when the giant is hit by the player's sword
+                    this.removeWizardHeart();
+                    // Set the giant as not vulnerable and start the cooldown timer
+                    this.isVulnerableGiant = false;
+                    this.time.delayedCall(1000, () => {
+                        this.isVulnerableGiant = true;
+                    });
+                    // Restart the scene when all giant's hearts are gone
+                    if (this.heartsWizardGroup.getLength() === 0) {
+                        // Disable physics for each object in the giant group
+                        this.wizardGroup.children.iterate(child => {
+                            this.physics.world.disableBody(child.body);
+                        });
+
+                        // Make the giant group invisible
+                        this.wizardGroup.setVisible(false);
+
+                        //TODO: Change this
+                        // Spawn a key when the giant is defeated
+                        // this.key = this.physics.add.sprite(this.wizard.x, this.wizard.y, "key").setOrigin(0.5, 0.5);
+                        // // Enable collision handling for the key
+                        // this.physics.world.enable(this.key, Phaser.Physics.Arcade.STATIC_BODY);
+                    }
+                }
+                this.isSwordHit = true; // Set the flag to true to indicate that the sword has hit the giant
+            }
+        });
+
+        // Add collision detection for the closed door
+        this.physics.add.overlap(this.player, this.lockedDoor, (player, door) => {
+            if (!this.keyFlag) {
+                // Player doesn't have the key, provide feedback or take appropriate action
+            } else {
+                // Player has the key, open the door
+                door.destroy(); // Remove the closed door
+                this.openDoor = this.physics.add.sprite(door.x, door.y, "openDoor").setOrigin(0.5, 0.5);
+                this.physics.world.enable(this.openDoor, Phaser.Physics.Arcade.STATIC_BODY);
+
+                // Disable collision with the castle layer for the open door
+                this.castleLayer.forEachTile(tile => {
+                    if (tile.properties.collides) {
+                        tile.setCollision(false);
+                    }
+                });
+            }
+        });
+
+
+
+        // KEY LISTENING
+
+        // Listen for "X" key press event
+        this.input.keyboard.on('keydown-X', () => {
+            this.isXKeyDown = true;
+        });
+
+        // Listen for "X" key release event
+        this.input.keyboard.on('keyup-X', () => {
+            this.isXKeyDown = false;
+        });
+
+        // Listen for "X" key press event
+        this.input.keyboard.on('keydown-X', () => {
+            this.sword.setVisible(true); // Show the sword when "X" key is pressed
+        });
+
+        this.cursors = this.input.keyboard.createCursorKeys();
+        this.rKey = this.input.keyboard.addKey('R');
+
+        // Add hearts above the wizard
+        for (let i = 0; i < 3; i++) {
+            const heart = this.add.sprite(this.wizard.x + i * 12, this.wizard.y - 12, "fullHeartMysticalCastle").setOrigin(0.5, 0.5);
+            this.heartsWizardGroup.add(heart);
+        }
+
     }
 
     update() {
@@ -128,19 +382,177 @@ class MysticalCastle extends Phaser.Scene {
             this.activeCharacter.body.setVelocityY(100);
         }
 
+        if (this.isXKeyDown && this.weaponFlag) {
+            // Update sword physics only when "X" key is pressed and the weapon flag is true
+            this.physics.world.enable(this.sword);
+            this.sword.setVisible(true);
+            this.updateSwordPosition();
+        } else {
+            // Disable sword physics when "X" key is released or weapon flag is false
+            if (this.sword.body) { // Check if the sword body exists before disabling
+                this.physics.world.remove(this.sword.body);
+                this.sword.setVisible(false);
+            }
+        }
+
         // Update heart position relative to the character
         let offsetX = -4; // Initial offset from the character's x position
 
         this.heartsGroup.children.iterate(heart => {
-            heart.setPosition(this.purpleTownie.x + offsetX, this.purpleTownie.y - 8); // Adjust y-position to be above the character's head
+            heart.setPosition(this.player.x + offsetX, this.player.y - 8); // Adjust y-position to be above the character's head
             offsetX += 12; // Increment the offset for each heart
         });
+
+        // Update heart position relative to the character
+        let offsetWizardX = -4; // Initial offset from the character's x position
+
+        this.heartsWizardGroup.children.iterate(heart => {
+            heart.setPosition(this.wizard.x + offsetWizardX, this.wizard.y - 8); // Adjust y-position to be above the character's head
+            offsetWizardX += 12; // Increment the offset for each heart
+        });
+
+        if (Phaser.Input.Keyboard.JustDown(this.rKey)) {
+            this.scene.restart();
+        }
+
+        // Update sword position relative to the character
+        this.updateSwordPosition();
+
+        const isCollidingWithDoor = this.physics.overlap(this.player, this.openDoor);
+
+        // If the player is not colliding with the open door, re-enable collisions with the castle layer
+        if (!isCollidingWithDoor) {
+            this.castleLayer.forEachTile(tile => {
+                if (tile.properties.collides) {
+                    tile.setCollision(true);
+                }
+            });
+        }
+
+    }
+
+    setRandomWizardWandMagicMovement() {
+        // Define movement parameters
+        const moveDistance = 200; // Maximum distance the wizardWandMagic will move away from the wizard
+        const moveSpeed = 2000; // Speed of the movement in milliseconds
+
+        // Clear any existing tweens on the wizardWandMagic
+        this.tweens.killTweensOf(this.wizardWandMagic);
+
+        // Generate random x and y offsets within the specified range
+        const randomX = Phaser.Math.Between(-moveDistance, moveDistance);
+        const randomY = Phaser.Math.Between(-moveDistance, moveDistance);
+
+        // Tween to move the wizardWandMagic away from the wizard in a random direction
+        this.tweenwizardWandMagic = this.tweens.add({
+            targets: this.wizardWandMagic,
+            x: () => this.wizard.x + randomX, // Move to a random position relative to the wizard's x position
+            y: () => this.wizard.y + randomY, // Move to a random position relative to the wizard's y position
+            duration: moveSpeed,
+            ease: 'Linear',
+            onComplete: () => {
+                // Tween to move the wizardWandMagic back to the wizard's position
+                this.tweens.add({
+                    targets: this.wizardWandMagic,
+                    x: this.wizard.x,
+                    y: this.wizard.y,
+                    duration: moveSpeed,
+                    ease: 'Linear',
+                    onComplete: () => {
+                        // Call the function again to create continuous random movement
+                        this.setRandomWizardWandMagicMovement();
+                    }
+                });
+            }
+        });
+    }
+
+
+    setRandomWizardMovement() {
+        // Generate a random direction and speed
+        const directions = [
+            { x: 1, y: 0 }, // right
+            { x: -1, y: 0 }, // left
+            { x: 0, y: 1 }, // down
+            { x: 0, y: -1 } // up
+        ];
+        const randomDirection = Phaser.Math.RND.pick(directions);
+
+        // Set velocity for both wizard and wizardWandMagic
+        this.wizardGroup.children.iterate(child => {
+            child.setVelocity(randomDirection.x * this.wizardSpeed, randomDirection.y * this.wizardSpeed);
+        });
+
+        // Set a timer to change direction after a random interval
+        const randomInterval = Phaser.Math.Between(2000, 4000); // Increase the interval range for slower changes
+        this.time.delayedCall(randomInterval, this.setRandomWizardMovement, [], this);
     }
 
     removeHeart() {
         if (this.heartsGroup.getLength() > 0) {
             const heartToRemove = this.heartsGroup.getChildren()[this.heartsGroup.getLength() - 1];
             heartToRemove.destroy();
+        }
+    }
+
+    removeWizardHeart() {
+        if (this.heartsWizardGroup.getLength() > 0) {
+            const heartToRemove = this.heartsWizardGroup.getChildren()[this.heartsWizardGroup.getLength() - 1];
+            heartToRemove.destroy();
+        }
+    }
+
+    updateSwordPosition() {
+        // Calculate sword position relative to the townie's center
+        const swordOffsetX = this.player.flipX ? -5 : 20; // Distance from the townie's center
+        const swordOffsetY = 10; // Adjust this value to position the sword vertically
+
+        // Update the sword position
+        this.sword.x = this.player.x + swordOffsetX;
+        this.sword.y = this.player.y + swordOffsetY;
+
+        // Flip the sword sprite based on the movement direction of the townie
+        this.sword.setFlipX(this.player.flipX);
+
+        if (!this.physics.overlap(this.sword, this.wizard)) {
+            this.isSwordHit = false; // Reset the flag if the sword is not overlapping with the giant
+        }
+    }
+
+    setRandomGhostWizardMovement() {
+        // Iterate through each ghostWizard and set random movement
+        this.ghostWizards.forEach(ghostWizard => {
+            // Generate a random direction
+            const directions = [
+                { x: 1, y: 0 }, // right
+                { x: -1, y: 0 }, // left
+                { x: 0, y: 1 }, // down
+                { x: 0, y: -1 } // up
+            ];
+            const randomDirection = Phaser.Math.RND.pick(directions);
+
+            // Set velocity for each ghostWizard based on the orc speed
+            const velocityX = randomDirection.x * this.enemySpeed + 2;
+            const velocityY = randomDirection.y * this.enemySpeed + 2;
+            ghostWizard.setVelocity(velocityX, velocityY);
+        });
+
+        // Set a timer to change direction for each ghostWizard after a random interval
+        const randomInterval = Phaser.Math.Between(2000, 4000); // Increase the interval range for slower changes
+        this.time.delayedCall(randomInterval, this.setRandomGhostWizardMovement, [], this);
+    }
+
+    killGhostWizard(ghostWizard) {
+        // Disable physics for the ghostWizard
+        this.physics.world.disableBody(ghostWizard.body);
+        // Make the ghostWizard sprite invisible
+        ghostWizard.setVisible(false);
+        // Optionally, you can also destroy the ghostWizard sprite
+        ghostWizard.destroy();
+        // Remove the snake from the snakes array
+        const index = this.ghostWizards.indexOf(ghostWizard);
+        if (index !== -1) {
+            this.ghostWizards.splice(index, 1);
         }
     }
 

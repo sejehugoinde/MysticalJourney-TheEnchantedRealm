@@ -30,7 +30,7 @@ class DarkCave extends Phaser.Scene {
             this.lives = 2
         }
 
-        // Setup
+        // SETUP
         // Create a new tilemap which uses 16x16 tiles, and is 40 tiles wide and 25 tiles tall
         this.map = this.add.tilemap("darkCave", this.TILESIZE, this.TILESIZE, this.TILEHEIGHT, this.TILEWIDTH);
         this.physics.world.setBounds(0, 0, 200 * 18, 25 * 18);
@@ -49,14 +49,51 @@ class DarkCave extends Phaser.Scene {
         this.castleLayer.setCollisionByProperty({ collides: true });
         this.graveyardLayer.setCollisionByProperty({ collides: true });
 
-        // Enemy related
+        // ENEMY RELATED
+        // Create orc sprite and add it to the orc group
+        this.giant = this.physics.add.sprite(this.tileXtoWorld(25), this.tileYtoWorld(15), "giant").setOrigin(0, 0);
+        this.giant.setScale(2);
+        this.giantGroup.add(this.giant);
 
-        // Player related
-        this.player = this.add.sprite(this.tileXtoWorld(30), this.tileYtoWorld(25), "darkCavePlayer").setOrigin(0, 0);
+        // Add three hearts above the giant
+        for (let i = 0; i < 3; i++) {
+            const heart = this.add.sprite(20 + i * 20, 20, "fullHeartMysticalCastle").setOrigin(0.5, 0.5);
+            this.heartsGiantGroup.add(heart);
+        }
+
+        // Create the giantSword as a physics sprite and add it to the orc group
+        this.giantSword = this.physics.add.sprite(this.giant.x, this.giant.y, "giantSword").setOrigin(0.5, 0.5);
+        this.giantSword.setCollideWorldBounds(true);
+        this.giantSword.setScale(1.5);
+        this.giantGroup.add(this.giantSword);
+
+        // Set up random movement for the weak orc
+        this.orcSpeed = 5; // Reduced speed of the orc
+        this.setRandomOrcMovement();
+        this.setRandomGiantSwordMovement();
+
+        // Add this to the create method to repeat giantSword throwing every 3 seconds
+        this.time.addEvent({
+            delay: 3000, // 3 seconds
+            callback: this.setRandomGiantSwordMovement,
+            callbackScope: this,
+            loop: true
+        });
+
+        // Set the depth of the orc group to be lower than the townsfolk sprite
+        this.giantGroup.setDepth(0);
+
+        // PLAYER RELATED
+        this.player = this.add.sprite(this.tileXtoWorld(1), this.tileYtoWorld(1), "darkCavePlayer").setOrigin(0, 0);
         this.player.setScale(1);
         this.player.setDepth(1);
 
-        // Obejcts
+        // Create sword sprite using a frame from the spritesheet
+        this.sword = this.physics.add.sprite(0, 0, "swordDarkCave").setOrigin(0.5, 0.5);
+        this.sword.setCollideWorldBounds(true);
+        this.sword.setScale(1);
+
+        // OBJECTS CREATION
         this.leftPort = this.map.createFromObjects("Objects", {
             name: "leftPort",
             key: "tilemap_sheet",
@@ -112,7 +149,7 @@ class DarkCave extends Phaser.Scene {
             frame: 89
         })
 
-        // Enable collision handling
+        // ENABLE COLLISION HANDLING
         this.physics.world.enable(this.leftPort, Phaser.Physics.Arcade.STATIC_BODY);
         this.physics.world.enable(this.rightPort, Phaser.Physics.Arcade.STATIC_BODY);
         this.physics.world.enable(this.spikes, Phaser.Physics.Arcade.STATIC_BODY);
@@ -123,12 +160,12 @@ class DarkCave extends Phaser.Scene {
         this.physics.world.enable(this.coin, Phaser.Physics.Arcade.STATIC_BODY);
         this.physics.world.enable(this.lockedDoor, Phaser.Physics.Arcade.STATIC_BODY);
 
-        this.physics.add.overlap(this.player, this.leftPort, (obj1, obj2) => {
+        this.physics.add.overlap(this.player, this.leftPort, () => {
             this.scene.start("mysticalCastleScene", { lives: this.lives });
 
         });
 
-        this.physics.add.overlap(this.player, this.rightPort, (obj1, obj2) => {
+        this.physics.add.overlap(this.player, this.rightPort, () => {
             this.scene.start("mysticalCastleScene", { lives: this.lives });
         });
 
@@ -152,7 +189,7 @@ class DarkCave extends Phaser.Scene {
         });
 
 
-        // Create groups
+        // CREATE GROUPS
         this.giantGroup = this.add.group();
         this.heartsGroup = this.add.group();
         this.heartsGiantGroup = this.add.group();
@@ -161,62 +198,24 @@ class DarkCave extends Phaser.Scene {
         this.closedChestGroup = this.add.group(this.closedChest);
         this.spikeGroup = this.add.group(this.spikes);
 
-
-        // Add three hearts above the character
+        // LIVES
         for (let i = 0; i < this.lives; i++) {
             const heart = this.add.sprite(20 + i * 20, 20, "fullHeartMysticalCastle").setOrigin(0.5, 0.5);
             this.heartsGroup.add(heart);
         }
-
-        // Create orc sprite and add it to the orc group
-        this.giant = this.physics.add.sprite(this.tileXtoWorld(25), this.tileYtoWorld(15), "giant").setOrigin(0, 0);
-        this.giant.setScale(2);
-        this.giantGroup.add(this.giant);
-
-        // Add three hearts above the giant
-        for (let i = 0; i < 3; i++) {
-            const heart = this.add.sprite(20 + i * 20, 20, "fullHeartMysticalCastle").setOrigin(0.5, 0.5);
-            this.heartsGiantGroup.add(heart);
-        }
-
-        // Create the giantSword as a physics sprite and add it to the orc group
-        this.giantSword = this.physics.add.sprite(this.giant.x, this.giant.y, "giantSword").setOrigin(0.5, 0.5);
-        this.giantSword.setCollideWorldBounds(true);
-        this.giantSword.setScale(1.5);
-        this.giantGroup.add(this.giantSword);
-
-        // Set up random movement for the weak orc
-        this.orcSpeed = 5; // Reduced speed of the orc
-        this.setRandomOrcMovement();
-        this.setRandomgiantSwordMovement();
-
-        // Add this to the create method to repeat giantSword throwing every 3 seconds
-        this.time.addEvent({
-            delay: 3000, // 3 seconds
-            callback: this.setRandomgiantSwordMovement,
-            callbackScope: this,
-            loop: true
-        });
-
-        // Set the depth of the orc group to be lower than the townsfolk sprite
-        this.giantGroup.setDepth(0);
 
         // Enable physics for the townsfolk sprite without debug visuals
         this.physics.add.existing(this.player);
         this.player.body.setCollideWorldBounds(true);
 
         // Enable collision handling
-        this.physics.add.collider(this.player, this.groundLayer, () => { });
+        this.physics.add.collider(this.player, this.groundLayer);
         this.physics.add.collider(this.player, this.railwayLayer);
         this.physics.add.collider(this.player, this.castleLayer);
         this.physics.add.collider(this.player, this.graveyardLayer);
         this.physics.add.collider(this.giantSword, this.groundLayer);
 
-        // Create sword sprite using a frame from the spritesheet
-        this.sword = this.physics.add.sprite(0, 0, "swordDarkCave").setOrigin(0.5, 0.5);
-        this.sword.setCollideWorldBounds(true);
-        this.sword.setScale(1);
-
+        // KEY LISTENING
         // Listen for "X" key press event
         this.input.keyboard.on('keydown-X', () => {
             this.isXKeyDown = true;
@@ -232,6 +231,9 @@ class DarkCave extends Phaser.Scene {
             this.sword.setVisible(true); // Show the sword when "X" key is pressed
         });
 
+        this.cursors = this.input.keyboard.createCursorKeys();
+
+        // CAMERA
         // Camera settings
         this.cameras.main.setBounds(0, 0, this.map.widthInPixels, this.map.heightInPixels);
         this.cameras.main.setSize(config.width, config.height); // Set camera size to match the game config
@@ -241,23 +243,19 @@ class DarkCave extends Phaser.Scene {
         this.cameras.main.startFollow(this.player, true, 0.25, 0.25); // (target, [,roundPixels][,lerpX][,lerpY])
         this.cameras.main.setDeadzone(50, 50);
 
-        // Add key handlers for arrow keys
-        this.cursors = this.input.keyboard.createCursorKeys();
-
-        this.physics.add.overlap(this.player, this.closedDoorRight, (obj1, obj2) => {
+        // OVERLAPS
+        this.physics.add.overlap(this.player, this.closedDoorRight, () => {
             if (!this.keyFlag) {
-                // If the player hasn't picked up the key yet, prevent them from accessing the closed door
-                // You can add an alert or any other visual feedback to indicate that the door is locked
+                alert("The door seems locked...")
             } else {
                 // If the player has the key, allow them to access the closed door
                 this.scene.start("mysticalCastleScene", { lives: this.lives });
             }
         });
 
-        this.physics.add.overlap(this.player, this.closedDoorLeft, (obj1, obj2) => {
+        this.physics.add.overlap(this.player, this.closedDoorLeft, () => {
             if (!this.keyFlag) {
-                // If the player hasn't picked up the key yet, prevent them from accessing the closed door
-                // You can add an alert or any other visual feedback to indicate that the door is locked
+                alert("The door seems locked...")
             } else {
                 // If the player has the key, allow them to access the closed door
                 this.scene.start("mysticalCastleScene", { lives: this.lives });
@@ -295,8 +293,6 @@ class DarkCave extends Phaser.Scene {
             }
         });
 
-
-
         this.physics.add.overlap(this.player, this.giantSword, () => {
             // Check if the character is currently vulnerable
             if (this.isVulnerable) {
@@ -316,7 +312,6 @@ class DarkCave extends Phaser.Scene {
 
         this.physics.add.overlap(this.player, this.spikeGroup, this.playerHitBySpikes, null, this);
 
-
         this.physics.add.overlap(this.player, this.openChestGroup, (obj1, obj2) => {
             obj2.destroy();
         });
@@ -325,21 +320,14 @@ class DarkCave extends Phaser.Scene {
             obj2.destroy();
         });
 
-        // Handle collision detection with coins
         this.physics.add.overlap(this.player, this.coinGroup, (obj1, obj2) => {
-            //this.myScore += 1;
-            //my.text.score.setText("Score: " + this.myScore);
             obj2.destroy(); // remove coin on overlap
         });
 
         this.physics.add.overlap(this.player, this.healthPotion, (player, potion) => {
-            // Check if the player has less than 3 lives
             if (this.lives < 3) {
-                // Increase the player's lives by 1
                 this.lives++;
-                // Remove the health potion
                 potion.destroy();
-                // Update the hearts display
                 this.updateHeartsDisplay(); // Call the function to update hearts display
             }
         });
@@ -367,7 +355,7 @@ class DarkCave extends Phaser.Scene {
     }
 
 
-    setRandomgiantSwordMovement() {
+    setRandomGiantSwordMovement() {
         // Define movement parameters
         const moveDistance = 50; // Distance the giantSword will move away from the orc
         const moveSpeed = 1000; // Speed of the movement in milliseconds
@@ -529,7 +517,7 @@ class DarkCave extends Phaser.Scene {
     }
 
 
-    playerHitBySpikes(player, spikes) {
+    playerHitBySpikes() {
         // Check if the player is currently vulnerable (hasn't been hit recently)
         if (this.isVulnerable) {
             // Remove a heart when the character is hit by a snake

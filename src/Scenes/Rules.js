@@ -37,9 +37,6 @@ class Rules extends Phaser.Scene {
         // Add a tileset to the map
         this.tileset = this.map.addTilesetImage("kenney-tiny-town", "tilemap_tiles");
 
-        // Create the layers
-        this.groundLayer = this.map.createLayer("Ground-n-Walkways", this.tileset, 0, 0);
-
         // Create townsfolk sprite
         // Use setOrigin() to ensure the tile space computations work well
         this.my.sprite.purpleTownie = this.add.sprite(this.tileXtoWorld(5), this.tileYtoWorld(5), "purple").setOrigin(0, 0);

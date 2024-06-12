@@ -114,8 +114,6 @@ class EnchantedForest extends Phaser.Scene {
         this.weakOrc.setScale(1.5);
         this.orcGroup.add(this.weakOrc);
 
-        // Create snake sprite
-        // Create an array to hold all the snake sprites
         this.snakes = [];
 
         // Define the number of snakes you want
@@ -336,7 +334,7 @@ class EnchantedForest extends Phaser.Scene {
 
     }
 
-    killSnake(sword, snake) {
+    killSnake(snake) {
         // Disable physics for the snake
         this.physics.world.disableBody(snake.body);
         // Make the snake sprite invisible
@@ -500,7 +498,7 @@ class EnchantedForest extends Phaser.Scene {
         }
     }
 
-    playerHitBySnake(player, snake) {
+    playerHitBySnake() {
         // Check if the player is currently vulnerable (hasn't been hit recently)
         if (this.isVulnerable) {
             // Remove a heart when the character is hit by a snake

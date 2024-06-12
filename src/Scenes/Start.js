@@ -24,7 +24,7 @@ class Start extends Phaser.Scene {
 
         // Position "Learn the rules" to the right of "Play the game"
         const startGameWidth = this.my.text.startGame.width;
-        this.my.text.learnRules = this.add.bitmapText(10 + startGameWidth + 20, 100, "rocketSquare", "Learn the rules of the game"); // 20 pixels right
+        this.my.text.learnRules = this.add.bitmapText(10 + startGameWidth + 30, 100, "rocketSquare", "Learn the rules of the game"); // 20 pixels right
         this.my.text.learnRules.setFontSize(8); // Set the font size to a smaller value
         this.my.text.learnRules.setDepth(1); // Set depth to render above tilemap layers
 
@@ -34,9 +34,6 @@ class Start extends Phaser.Scene {
 
         // Add a tileset to the map
         this.tileset = this.map.addTilesetImage("kenney-tiny-town", "tilemap_tiles");
-
-        // Create the layers
-        this.groundLayer = this.map.createLayer("Ground-n-Walkways", this.tileset, 0, 0);
 
         // Create townsfolk sprite
         // Use setOrigin() to ensure the tile space computations work well
@@ -81,12 +78,24 @@ class Start extends Phaser.Scene {
             key: "tilemap_sheet",
             frame: 11
         });
+        this.learnCreditsLeft = this.map.createFromObjects("Objects", {
+            name: "learnCreditsLeft",
+            key: "tilemap_sheet",
+            frame: 11
+        });
+        this.learnCreditsRight = this.map.createFromObjects("Objects", {
+            name: "learnCreditsRight",
+            key: "tilemap_sheet",
+            frame: 10
+        });
 
         // Enable collision handling
         this.physics.world.enable(this.learnRulesRight, Phaser.Physics.Arcade.STATIC_BODY);
         this.physics.world.enable(this.learnRulesLeft, Phaser.Physics.Arcade.STATIC_BODY);
         this.physics.world.enable(this.startGameLeft, Phaser.Physics.Arcade.STATIC_BODY);
         this.physics.world.enable(this.startGameRight, Phaser.Physics.Arcade.STATIC_BODY);
+        this.physics.world.enable(this.learnCreditsLeft, Phaser.Physics.Arcade.STATIC_BODY);
+        this.physics.world.enable(this.learnCreditsRight, Phaser.Physics.Arcade.STATIC_BODY);
 
         this.physics.add.overlap(this.activeCharacter, this.learnRulesRight, (obj1, obj2) => {
             this.scene.start("rulesScene");
@@ -102,6 +111,13 @@ class Start extends Phaser.Scene {
 
         this.physics.add.overlap(this.activeCharacter, this.startGameRight, (obj1, obj2) => {
             this.scene.start("enchantedForestScene");
+        });
+        this.physics.add.overlap(this.activeCharacter, this.learnCreditsLeft, (obj1, obj2) => {
+            this.scene.start("creditScene");
+        });
+
+        this.physics.add.overlap(this.activeCharacter, this.learnCreditsRight, (obj1, obj2) => {
+            this.scene.start("creditScene");
         });
 
     }

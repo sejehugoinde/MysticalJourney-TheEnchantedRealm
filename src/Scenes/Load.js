@@ -17,6 +17,10 @@ class Load extends Phaser.Scene {
         // Load png's to mysticalCastleScene
         this.load.image("fullHeartMysticalCastle", "fullHeartMysticalCastle.png");
         this.load.image("speakingBubble", "message_square.png");
+        this.load.image("wizardMysticalCastle", "wizardMysticalCastle.png");
+        this.load.image("wizardWand", "wizardWand.png");
+        this.load.image("wizardWandMagic", "wizardWandMagic.png");
+        this.load.image("ghostWizard", "ghostWizard.png");
 
         // Load png's to enchantedForestScene
         this.load.image("weakOrch", "weak_orch.png");
@@ -55,11 +59,7 @@ class Load extends Phaser.Scene {
 
     create() {
         
-         // ...and pass to the next Scene
-         this.scene.start("darkCaveScene");
+         this.scene.start("endScene");
     }
 
-    // Never get here since a new scene is started in create()
-    update() {
-    }
 }
