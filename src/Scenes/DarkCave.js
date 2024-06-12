@@ -297,10 +297,11 @@ class DarkCave extends Phaser.Scene {
         this.physics.add.overlap(this.player, this.giantSword, () => {
             // Check if the character is currently vulnerable
             if (this.isVulnerable) {
-                // Remove a heart when the character is hit by an giantSword
-                this.removeHeart();
                 // Set the character as not vulnerable and start the cooldown timer
                 this.isVulnerable = false;
+                // Remove a heart when the character is hit by an giantSword
+                this.removeHeart();
+
                 this.time.delayedCall(1000, () => {
                     this.isVulnerable = true;
                 });
@@ -317,13 +318,15 @@ class DarkCave extends Phaser.Scene {
             if (!this.weaponFlag) {
                 alert("You have got a new weapon. Press x to hit");
                 this.weaponFlag = true;
-            }        });
+            }
+        });
 
         this.physics.add.overlap(this.player, this.closedChestGroup, (obj1, obj2) => {
             if (!this.weaponFlag) {
                 alert("You have got a new weapon. Press x to hit");
                 this.weaponFlag = true;
-            }        });
+            }
+        });
 
         this.physics.add.overlap(this.player, this.coinGroup, (obj1, obj2) => {
             obj2.destroy(); // remove coin on overlap
@@ -331,7 +334,7 @@ class DarkCave extends Phaser.Scene {
 
         this.physics.add.overlap(this.player, this.healthPotion, (player, potion) => {
             if (this.lives < 3) {
-                this.lives++;
+                this.lives += 1;
                 potion.destroy();
                 this.updateHeartsDisplay(); // Call the function to update hearts display
             }
@@ -430,8 +433,6 @@ class DarkCave extends Phaser.Scene {
     }
 
     removeHeart() {
-        this.heartsGroup.clear(true);
-
         if (this.heartsGroup.getLength() > 0) {
             const heartToRemove = this.heartsGroup.getChildren()[this.heartsGroup.getLength() - 1];
             heartToRemove.destroy();
@@ -460,7 +461,7 @@ class DarkCave extends Phaser.Scene {
     playerHitBySpikes() {
         // Check if the player is currently vulnerable (hasn't been hit recently)
         if (this.isVulnerable) {
-            // Remove a heart when the character is hit by a snake
+            // Remove a heart when the character is hit by spikes
             this.removeHeart();
 
             // Set the character as not vulnerable and start the cooldown timer
