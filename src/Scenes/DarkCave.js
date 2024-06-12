@@ -15,9 +15,9 @@ class DarkCave extends Phaser.Scene {
 
     create(data) {
         // Conditionals
-        this.keyFlag = true;
+        this.keyFlag = false;
         this.isSwordHit = false;
-        this.weaponFlag = true;
+        this.weaponFlag = false;
         this.isVulnerable = true;
         this.isVulnerableGiant = true;
         this.isXKeyDown = false;
@@ -314,12 +314,16 @@ class DarkCave extends Phaser.Scene {
         this.physics.add.overlap(this.player, this.spikeGroup, this.playerHitBySpikes, null, this);
 
         this.physics.add.overlap(this.player, this.openChestGroup, (obj1, obj2) => {
-            obj2.destroy();
-        });
+            if (!this.weaponFlag) {
+                alert("You have got a new weapon. Press x to hit");
+                this.weaponFlag = true;
+            }        });
 
         this.physics.add.overlap(this.player, this.closedChestGroup, (obj1, obj2) => {
-            obj2.destroy();
-        });
+            if (!this.weaponFlag) {
+                alert("You have got a new weapon. Press x to hit");
+                this.weaponFlag = true;
+            }        });
 
         this.physics.add.overlap(this.player, this.coinGroup, (obj1, obj2) => {
             obj2.destroy(); // remove coin on overlap
@@ -332,6 +336,8 @@ class DarkCave extends Phaser.Scene {
                 this.updateHeartsDisplay(); // Call the function to update hearts display
             }
         });
+
+        alert("In your way of travelling to another world. You lost your sword...");
 
     }
 

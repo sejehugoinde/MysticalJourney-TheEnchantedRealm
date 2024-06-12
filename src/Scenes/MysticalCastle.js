@@ -17,9 +17,9 @@ class MysticalCastle extends Phaser.Scene {
     create(data) {
         //CONDITIONALS
         this.lives = data.lives;
-        this.keyFlag = true;
+        this.keyFlag = false;
         this.isSwordHit = false;
-        this.weaponFlag = true;
+        this.weaponFlag = false;
         this.isVulnerable = true;
         this.isVulnerableGiant = true;
         this.isXKeyDown = false;
@@ -41,12 +41,6 @@ class MysticalCastle extends Phaser.Scene {
         // Create an array to hold all the ghost wizards
         this.ghostWizards = [];
         this.numGhostWizards = 10;
-
-        // LIVES
-        for (let i = 0; i < this.lives; i++) {
-            const heart = this.add.sprite(20 + i * 20, 20, "fullHeartMysticalCastle").setOrigin(0.5, 0.5);
-            this.heartsGroup.add(heart);
-        }
 
         // Create a new tilemap which uses 16x16 tiles, and is 40 tiles wide and 25 tiles tall
         this.map = this.add.tilemap("mysticalCastle", this.TILESIZE, this.TILESIZE, this.TILEHEIGHT, this.TILEWIDTH);
@@ -147,7 +141,7 @@ class MysticalCastle extends Phaser.Scene {
 
         // PLAYER RELATED
         // Use setOrigin() to ensure the tile space computations work well
-        this.player = this.add.sprite(this.tileXtoWorld(10), this.tileYtoWorld(10), "purple").setOrigin(0, 0);
+        this.player = this.add.sprite(this.tileXtoWorld(1), this.tileYtoWorld(1), "purple").setOrigin(0, 0);
 
         // Enable physics for the sprite without debug visuals
         this.physics.add.existing(this.player);
@@ -164,6 +158,12 @@ class MysticalCastle extends Phaser.Scene {
         for (let i = 0; i < this.lives; i++) {
             const heart = this.physics.add.sprite(20 + i * 20, 20, "fullHeartMysticalCastle").setOrigin(0.5, 0.5);
             this.heartsGroup.add(heart);
+        }
+
+        // Add hearts above the wizard
+        for (let i = 0; i < 3; i++) {
+            const heart = this.physics.add.sprite(20 + i * 20, 20, "fullHeartMysticalCastle").setOrigin(0.5, 0.5);
+            this.heartsWizardGroup.add(heart);
         }
 
         // Enable collision handling
@@ -194,7 +194,7 @@ class MysticalCastle extends Phaser.Scene {
         // Camera settings
         this.cameras.main.setBounds(0, 0, this.map.widthInPixels, this.map.heightInPixels);
         this.cameras.main.setSize(config.width, config.height); // Set camera size to match the game config
-        this.cameras.main.setZoom(1);
+        this.cameras.main.setZoom(3);
 
         // Add camera follow to the sprite
         this.cameras.main.startFollow(this.player, true, 0.25, 0.25); // (target, [,roundPixels][,lerpX][,lerpY])
@@ -218,9 +218,23 @@ class MysticalCastle extends Phaser.Scene {
             frame: 45
         })
 
+        this.chestTongue = this.map.createFromObjects("Objects", {
+            name: "chestTongue",
+            key: "tilemap_sheet",
+            frame: 92
+        })
+
+        this.barrels = this.map.createFromObjects("Objects", {
+            name: "barrels",
+            key: "tilemap_sheet",
+            frame: 82
+        })
+
         // ENABLE COLLISION HANDLING    
         this.physics.world.enable(this.princess, Phaser.Physics.Arcade.STATIC_BODY);
         this.physics.world.enable(this.lockedDoor, Phaser.Physics.Arcade.STATIC_BODY);
+        this.physics.world.enable(this.chestTongue, Phaser.Physics.Arcade.STATIC_BODY);
+        this.physics.world.enable(this.barrels, Phaser.Physics.Arcade.STATIC_BODY);
 
         // Convert this.princess to a Phaser GameObject
         if (this.princess.length > 0) {
@@ -243,8 +257,33 @@ class MysticalCastle extends Phaser.Scene {
             this.scene.start("endScene");
         });
 
+        // Enable collision handling
+        this.physics.add.overlap(this.player, this.chestTongue, (obj1, obj2) => {
+            // Check if the character is currently vulnerable
+            if (this.isVulnerable) {
+                // Remove a heart when the character is hit by an giantSword
+                this.removeHeart();
+                // Set the character as not vulnerable and start the cooldown timer
+                this.isVulnerable = false;
+                this.time.delayedCall(1000, () => {
+                    this.isVulnerable = true;
+                });
+                // Restart the scene when all hearts are gone
+                if (this.heartsGroup.getLength() === 0) {
+                    this.scene.restart();
+                }
+            }
+        });
+
         //OVERLAPS
-        this.physics.add.overlap(this.sword, this.wizardGroup, this.killGhostWizard, null, this);
+        this.physics.add.overlap(this.sword, this.ghostWizardGroup, this.killGhostWizard, null, this);
+        this.physics.add.overlap(this.player, this.ghostWizardGroup, this.playerHitByGhostWizard, null, this);
+        
+        this.physics.add.overlap(this.player, this.barrels, (obj1, obj2) => {
+            if (!this.weaponFlag) {
+                alert("You have got a new weapon. Press x to hit");
+                this.weaponFlag = true;
+            }        });
 
         this.physics.add.overlap(this.player, this.wizardWand, () => {
             // Check if the character is currently vulnerable
@@ -302,10 +341,7 @@ class MysticalCastle extends Phaser.Scene {
                         this.wizardGroup.setVisible(false);
 
                         //TODO: Change this
-                        // Spawn a key when the giant is defeated
-                        // this.key = this.physics.add.sprite(this.wizard.x, this.wizard.y, "key").setOrigin(0.5, 0.5);
-                        // // Enable collision handling for the key
-                        // this.physics.world.enable(this.key, Phaser.Physics.Arcade.STATIC_BODY);
+                        this.keyFlag = true;
                     }
                 }
                 this.isSwordHit = true; // Set the flag to true to indicate that the sword has hit the giant
@@ -331,8 +367,6 @@ class MysticalCastle extends Phaser.Scene {
             }
         });
 
-
-
         // KEY LISTENING
 
         // Listen for "X" key press event
@@ -353,11 +387,7 @@ class MysticalCastle extends Phaser.Scene {
         this.cursors = this.input.keyboard.createCursorKeys();
         this.rKey = this.input.keyboard.addKey('R');
 
-        // Add hearts above the wizard
-        for (let i = 0; i < 3; i++) {
-            const heart = this.add.sprite(this.wizard.x + i * 12, this.wizard.y - 12, "fullHeartMysticalCastle").setOrigin(0.5, 0.5);
-            this.heartsWizardGroup.add(heart);
-        }
+        alert("In your way of travelling to another world. You lost your sword...");
 
     }
 
@@ -511,12 +541,10 @@ class MysticalCastle extends Phaser.Scene {
         this.sword.x = this.player.x + swordOffsetX;
         this.sword.y = this.player.y + swordOffsetY;
 
-        // Flip the sword sprite based on the movement direction of the townie
-        this.sword.setFlipX(this.player.flipX);
-
         if (!this.physics.overlap(this.sword, this.wizard)) {
             this.isSwordHit = false; // Reset the flag if the sword is not overlapping with the giant
         }
+        
     }
 
     setRandomGhostWizardMovement() {
@@ -555,7 +583,26 @@ class MysticalCastle extends Phaser.Scene {
             this.ghostWizards.splice(index, 1);
         }
     }
-    
+
+    playerHitByGhostWizard() {
+        // Check if the player is currently vulnerable (hasn't been hit recently)
+        if (this.isVulnerable) {
+            // Remove a heart when the character is hit by a snake
+            this.removeHeart();
+
+            // Set the character as not vulnerable and start the cooldown timer
+            this.isVulnerable = false;
+            this.time.delayedCall(1000, () => {
+                this.isVulnerable = true;
+            });
+
+            // Restart the scene when all hearts are gone
+            if (this.heartsGroup.getLength() === 0) {
+                this.scene.restart();
+            }
+        }
+    }
+
     toggleGhostWizardsVisibility() {
         // Determine the number of ghost wizards to toggle visibility
         const numToToggle = Phaser.Math.Between(1, this.ghostWizards.length);
